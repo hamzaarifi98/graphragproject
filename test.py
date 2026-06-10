@@ -1,7 +1,4 @@
-from backend.pipeline.query_pipeline import query_graph
+from backend.services.kg_services.llm_query import ask_graph
 
-result = query_graph.invoke({
-    "question": "Which products are sold the most in the month before the last"
-})
 
-print(result["answer"])
+print(ask_graph("What are the most sold product categories?"))

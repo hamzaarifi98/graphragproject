@@ -4,4 +4,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.db    
+*.db 
+.gitignore   
+.neo4j-local
+/docs

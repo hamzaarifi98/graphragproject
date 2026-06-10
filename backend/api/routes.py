@@ -9,6 +9,9 @@ from backend.services.csv_services import csv_to_neon
 from backend.services.data_ingestion import main as ingest_all_data
 from backend.services.pdf_services.vector_store import get_olist_rows, get_pdf_chunks, list_olist_tables
 
+
+
+
 app_router = APIRouter()
 
 
@@ -80,3 +83,35 @@ async def get_pdf(pdf_name: str):
         raise HTTPException(status_code=404, detail="PDF not found")
 
     return {"source_name": pdf_name, "chunks": chunks}
+
+
+
+from pydantic import BaseModel
+from backend.pipeline.query_pipeline import query_graph
+
+
+class QueryRequest(BaseModel):
+    question: str
+
+
+@app_router.post("/ask")
+async def ask_question(request: QueryRequest):
+    result = await run_in_threadpool(
+        query_graph.invoke,
+        {"question": request.question},
+    )
+
+    return {
+        "question": result.get("question"),
+        "route": result.get("route"),
+        "answer": result.get("answer"),
+    }
+
+
+@app_router.get("/kg/ask")
+async def ask_question(question:str):
+    from backend.services.kg_services.llm_query import ask_graph
+
+    result = ask_graph(question)
+
+    return result

@@ -7,6 +7,7 @@ from backend.services.pdf_services.pdf_loader import extract_pdf_text
 from backend.services.pdf_services.text_embedder import embed_text
 from backend.services.pdf_services.text_splitter import split_text
 from backend.services.pdf_services.vector_store import save_pdf_chunks
+from backend.services.pdf_services.text_embedder import embed_documents
 
 load_dotenv()
 
@@ -14,7 +15,7 @@ load_dotenv()
 def ingest_pdf(pdf_path: Path) -> dict[str, int | str]:
     text_content = extract_pdf_text(pdf_path)
     chunks = split_text(text_content)
-    embeddings = [embed_text(chunk) for chunk in chunks]
+    embeddings = embed_documents(chunks)
     chunks_loaded = save_pdf_chunks(pdf_path.name, chunks, embeddings)
 
     result = {

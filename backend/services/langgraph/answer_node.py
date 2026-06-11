@@ -15,6 +15,7 @@ def answer_node(state: QueryState) -> QueryState:
     question = state["question"]
     pdf_context = state.get("pdf_context", "")
     sql_context = state.get("sql_context", "")
+    kg_context = state.get("kg_context", "")
 
     response = client.invoke(
         [
@@ -30,7 +31,9 @@ Rules:
 - If the context is missing or not enough, say that you do not have enough information.
 - Do not invent facts.
 - If SQL/table context is provided, use it for structured data questions.
+- Also know that last date is from 2018 so when asked last month you can say last month from 2018 and use that date for filtering.
 - If PDF context is provided, use it for policy/document questions.
+- If Neo4j graph context is provided, use it for relationship and connected-entity questions.
 """,
             },
             {
@@ -44,6 +47,9 @@ PDF context:
 
 SQL/Postgres context:
 {sql_context}
+
+Neo4j graph context:
+{kg_context}
 """,
             },
         ]

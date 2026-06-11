@@ -1,0 +1,105 @@
+id,question,expected_route_raw,expected_route,actual_route,route_correct,question_type,difficulty,latency_seconds,error,has_error,cache_hit,cache_type,retriever_cache_hit,retriever_cache_type,retriever_cache_hits,answer,answer_length,context_count,expected_answer,answer_similarity,expected_contains,contains_score,raw_response
+1,What should a customer do if they receive the wrong product?,pdf_retrieval,pdf,pdf,True,policy_lookup,medium,6.8919,,False,False,,False,,{},"If a customer receives the wrong product, they should follow these steps:
+
+1. Inform the company of their decision to return the product by visiting the contact page on the website or sending an email.
+2. Ensure that the product is eligible for return, which includes being purchased within the last 14 days and in its original packaging.
+3. Return the product to the specified address, keeping in mind that they are responsible for the cost and risk of returning the goods. It is recommended to use an insured and trackable mail service.
+4. Wait for the company to reimburse them no later than 14 days from the day the returned goods are received. 
+
+If the goods were marked as a gift, a gift credit will be issued instead of a refund.",736,0,,,['wrong product'],1.0,"{""question"": ""What should a customer do if they receive the wrong product?"", ""route"": ""pdf"", ""answer"": ""If a customer receives the wrong product, they should follow these steps:\n\n1. Inform the company of their decision to return the product by visiting the contact page on the website or sending an email.\n2. Ensure that the product is eligible for return, which includes being purchased within the last 14 days and in its original packaging.\n3. Return the product to the specified address, keeping in mind that they are responsible for the cost and risk of returning the goods. It is recommended to use an insured and trackable mail service.\n4. Wait for the company to reimburse them no later than 14 days from the day the returned goods are received. \n\nIf the goods were marked as a gift, a gift credit will be issued instead of a refund."", ""cache_hit"": false, ""cache_type"": null, ""cache_similarity"": null, ""cached_question"": null, ""retriever_cache_hit"": false, ""retriever_cache_type"": null, ""retriever_cache_hits"": {}}"
+2,What are the conditions for free shipping?,pdf_retrieval,pdf,pdf,True,policy_lookup,medium,2.2963,,False,False,,False,,{},"The conditions for free shipping are as follows:
+
+- The shipping method is FedEx Standard.
+- The shipment cost is free.
+- The estimated delivery time is 3-5 business days.",171,0,,,['shipping'],1.0,"{""question"": ""What are the conditions for free shipping?"", ""route"": ""pdf"", ""answer"": ""The conditions for free shipping are as follows:\n\n- The shipping method is FedEx Standard.\n- The shipment cost is free.\n- The estimated delivery time is 3-5 business days."", ""cache_hit"": false, ""cache_type"": null, ""cache_similarity"": null, ""cached_question"": null, ""retriever_cache_hit"": false, ""retriever_cache_type"": null, ""retriever_cache_hits"": {}}"
+3,Can an order be cancelled after shipment?,pdf_retrieval,pdf,pdf,True,policy_lookup,medium,2.3559,,False,False,,False,,{},"You cannot cancel an order after shipment. However, you are entitled to cancel your order within 14 days of receiving the goods. If you wish to cancel, you must inform the company within that timeframe.",202,0,,,['cancel'],1.0,"{""question"": ""Can an order be cancelled after shipment?"", ""route"": ""pdf"", ""answer"": ""You cannot cancel an order after shipment. However, you are entitled to cancel your order within 14 days of receiving the goods. If you wish to cancel, you must inform the company within that timeframe."", ""cache_hit"": false, ""cache_type"": null, ""cache_similarity"": null, ""cached_question"": null, ""retriever_cache_hit"": false, ""retriever_cache_type"": null, ""retriever_cache_hits"": {}}"
+4,What documents are required to claim warranty?,pdf_retrieval,pdf,pdf,True,policy_lookup,medium,2.2918,,False,False,,False,,{},I do not have enough information to specify the documents required to claim warranty.,85,0,,,['warranty'],1.0,"{""question"": ""What documents are required to claim warranty?"", ""route"": ""pdf"", ""answer"": ""I do not have enough information to specify the documents required to claim warranty."", ""cache_hit"": false, ""cache_type"": null, ""cache_similarity"": null, ""cached_question"": null, ""retriever_cache_hit"": false, ""retriever_cache_type"": null, ""retriever_cache_hits"": {}}"
+5,What products are not eligible for return?,pdf_retrieval,pdf,pdf,True,policy_lookup,medium,4.4008,,False,False,,False,,{},"The following products are not eligible for return:
+
+1. Goods made to your specifications or clearly personalized.
+2. Goods that, according to their nature, are not suitable to be returned, deteriorate rapidly, or where the date of expiry is over.
+3. Goods that are not suitable for return due to health protection or hygiene reasons and were unsealed after delivery.
+4. Goods that, after delivery, are inseparably mixed with other items.
+
+Returns may be refused at the company's discretion if they do not meet these conditions.",528,0,,,['return'],1.0,"{""question"": ""What products are not eligible for return?"", ""route"": ""pdf"", ""answer"": ""The following products are not eligible for return:\n\n1. Goods made to your specifications or clearly personalized.\n2. Goods that, according to their nature, are not suitable to be returned, deteriorate rapidly, or where the date of expiry is over.\n3. Goods that are not suitable for return due to health protection or hygiene reasons and were unsealed after delivery.\n4. Goods that, after delivery, are inseparably mixed with other items.\n\nReturns may be refused at the company's discretion if they do not meet these conditions."", ""cache_hit"": false, ""cache_type"": null, ""cache_similarity"": null, ""cached_question"": null, ""retriever_cache_hit"": false, ""retriever_cache_type"": null, ""retriever_cache_hits"": {}}"
+6,What products are included in order 00010242fe8c5a6d1ba2dd792cb16214?,structured_lookup,sql,sql,True,sql_lookup,medium,4.9038,,False,False,,False,,{'sql': False},"The product included in order 00010242fe8c5a6d1ba2dd792cb16214 is categorized as ""cool_stuff"" with a product ID of ""4244733e06e7ecb4970a6e2683c13e61"". The price is 58.9 and the freight value is 13.29.",200,1,,,['product'],1.0,"{""question"": ""What products are included in order 00010242fe8c5a6d1ba2dd792cb16214?"", ""route"": ""sql"", ""answer"": ""The product included in order 00010242fe8c5a6d1ba2dd792cb16214 is categorized as \""cool_stuff\"" with a product ID of \""4244733e06e7ecb4970a6e2683c13e61\"". The price is 58.9 and the freight value is 13.29."", ""cache_hit"": false, ""cache_type"": null, ""cache_similarity"": null, ""cached_question"": null, ""retriever_cache_hit"": false, ""retriever_cache_type"": null, ""retriever_cache_hits"": {""sql"": false}}"
+7,What is the total value of order 00010242fe8c5a6d1ba2dd792cb16214?,structured_lookup,sql,sql,True,sql_calculation,medium,3.9578,,False,False,,False,,{'sql': False},The total value of order 00010242fe8c5a6d1ba2dd792cb16214 is $72.19.,68,1,,,['value'],1.0,"{""question"": ""What is the total value of order 00010242fe8c5a6d1ba2dd792cb16214?"", ""route"": ""sql"", ""answer"": ""The total value of order 00010242fe8c5a6d1ba2dd792cb16214 is $72.19."", ""cache_hit"": false, ""cache_type"": null, ""cache_similarity"": null, ""cached_question"": null, ""retriever_cache_hit"": false, ""retriever_cache_type"": null, ""retriever_cache_hits"": {""sql"": false}}"
+8,Which customers have more than one order?,structured_lookup,sql,kg,False,sql_aggregation,medium,2.8754,,False,False,,False,,{'neo4j': False},"The customer with more than one order is:
+
+- Customer ID: 9ef432eb6251297304e76186b10a928d, Order Count: 2",106,1,,,['customer'],1.0,"{""question"": ""Which customers have more than one order?"", ""route"": ""kg"", ""answer"": ""The customer with more than one order is:\n\n- Customer ID: 9ef432eb6251297304e76186b10a928d, Order Count: 2"", ""cache_hit"": false, ""cache_type"": null, ""cache_similarity"": null, ""cached_question"": null, ""retriever_cache_hit"": false, ""retriever_cache_type"": null, ""retriever_cache_hits"": {""neo4j"": false}}"
+9,What is the average delivery time for shipped orders?,structured_lookup,sql,sql,True,sql_aggregation,medium,3.2128,,False,False,,False,,{'sql': False},I do not have enough information.,33,1,,,['delivery'],0.0,"{""question"": ""What is the average delivery time for shipped orders?"", ""route"": ""sql"", ""answer"": ""I do not have enough information."", ""cache_hit"": false, ""cache_type"": null, ""cache_similarity"": null, ""cached_question"": null, ""retriever_cache_hit"": false, ""retriever_cache_type"": null, ""retriever_cache_hits"": {""sql"": false}}"
+10,Which product category has the highest revenue?,structured_lookup,sql,sql,True,sql_aggregation,medium,3.3141,,False,False,,False,,{'sql': False},"The product category with the highest revenue is ""health_beauty,"" with a total revenue of $1,258,681.34.",104,1,,,"['category', 'revenue']",1.0,"{""question"": ""Which product category has the highest revenue?"", ""route"": ""sql"", ""answer"": ""The product category with the highest revenue is \""health_beauty,\"" with a total revenue of $1,258,681.34."", ""cache_hit"": false, ""cache_type"": null, ""cache_similarity"": null, ""cached_question"": null, ""retriever_cache_hit"": false, ""retriever_cache_type"": null, ""retriever_cache_hits"": {""sql"": false}}"
+11,Which customers bought products from a seller with delayed orders?,graph_lookup,kg,,False,graph_traversal,medium,3.4696,500 Server Error: Internal Server Error for url: http://localhost:8000/ask,True,False,,False,,{},,0,0,,,"['customer', 'seller']",0.0,{}
+12,Which orders connect customers to sellers with bad reviews?,graph_lookup,kg,,False,graph_relationship,medium,27.7536,500 Server Error: Internal Server Error for url: http://localhost:8000/ask,True,False,,False,,{},,0,0,,,"['order', 'seller', 'review']",0.0,{}
+13,Which product categories are connected to late deliveries?,graph_lookup,kg,kg,True,graph_relationship,medium,8.2885,,False,False,,False,,{'neo4j': False},"The product categories connected to late deliveries are:
+
+1. agro_industry_and_commerce
+2. air_conditioning
+3. art
+4. arts_and_craftmanship
+5. audio
+6. auto
+7. baby
+8. bed_bath_table
+9. books_general_interest
+10. books_imported
+11. books_technical
+12. christmas_supplies
+13. cine_photo
+14. computers
+15. computers_accessories
+16. consoles_games
+17. construction_tools_construction
+18. construction_tools_lights
+19. construction_tools_safety
+20. cool_stuff
+21. costruction_tools_garden
+22. costruction_tools_tools
+23. diapers_and_hygiene
+24. drinks
+25. dvds_blu_ray
+26. electronics
+27. fashio_female_clothing
+28. fashion_bags_accessories
+29. fashion_male_clothing
+30. fashion_shoes
+31. fashion_sport
+32. fashion_underwear_beach
+33. fixed_telephony
+34. flowers
+35. food
+36. food_drink
+37. furniture_bedroom
+38. furniture_decor
+39. furniture_living_room
+40. furniture_mattress_and_upholstery
+41. garden_tools
+42. health_beauty
+43. home_appliances
+44. home_appliances_2
+45. home_comfort_2
+46. home_confort
+47. home_construction
+48. housewares
+49. industry_commerce_and_business
+50. kitchen_dining_laundry_garden_furniture
+51. luggage_accessories
+52. market_place
+53. music
+54. musical_instruments
+55. office_furniture
+56. party_supplies
+57. perfumery
+58. pet_shop
+59. portateis_cozinha_e_preparadores_de_alimentos
+60. signaling_and_security
+61. small_appliances
+62. small_appliances_home_oven_and_coffee
+63. sports_leisure
+64. stationery
+65. tablets_printing_image
+66. telephony
+67. toys
+68. watches_gifts",1501,1,,,"['category', 'delivery']",0.0,"{""question"": ""Which product categories are connected to late deliveries?"", ""route"": ""kg"", ""answer"": ""The product categories connected to late deliveries are:\n\n1. agro_industry_and_commerce\n2. air_conditioning\n3. art\n4. arts_and_craftmanship\n5. audio\n6. auto\n7. baby\n8. bed_bath_table\n9. books_general_interest\n10. books_imported\n11. books_technical\n12. christmas_supplies\n13. cine_photo\n14. computers\n15. computers_accessories\n16. consoles_games\n17. construction_tools_construction\n18. construction_tools_lights\n19. construction_tools_safety\n20. cool_stuff\n21. costruction_tools_garden\n22. costruction_tools_tools\n23. diapers_and_hygiene\n24. drinks\n25. dvds_blu_ray\n26. electronics\n27. fashio_female_clothing\n28. fashion_bags_accessories\n29. fashion_male_clothing\n30. fashion_shoes\n31. fashion_sport\n32. fashion_underwear_beach\n33. fixed_telephony\n34. flowers\n35. food\n36. food_drink\n37. furniture_bedroom\n38. furniture_decor\n39. furniture_living_room\n40. furniture_mattress_and_upholstery\n41. garden_tools\n42. health_beauty\n43. home_appliances\n44. home_appliances_2\n45. home_comfort_2\n46. home_confort\n47. home_construction\n48. housewares\n49. industry_commerce_and_business\n50. kitchen_dining_laundry_garden_furniture\n51. luggage_accessories\n52. market_place\n53. music\n54. musical_instruments\n55. office_furniture\n56. party_supplies\n57. perfumery\n58. pet_shop\n59. portateis_cozinha_e_preparadores_de_alimentos\n60. signaling_and_security\n61. small_appliances\n62. small_appliances_home_oven_and_coffee\n63. sports_leisure\n64. stationery\n65. tablets_printing_image\n66. telephony\n67. toys\n68. watches_gifts"", ""cache_hit"": false, ""cache_type"": null, ""cache_similarity"": null, ""cached_question"": null, ""retriever_cache_hit"": false, ""retriever_cache_type"": null, ""retriever_cache_hits"": {""neo4j"": false}}"
+14,Which sellers are linked to both delays and low review scores?,graph_lookup,kg,,False,graph_relationship,medium,60.0595,"HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=60)",True,False,,False,,{},,0,0,,,"['seller', 'review']",0.0,{}
+15,"If a customer received a damaged product, what should happen according to the policy?",pdf_retrieval,pdf,pdf,True,policy_lookup,medium,3.13,,False,False,,False,,{},"If a customer received a damaged product, they should contact the shipment carrier to file a claim. It is important to save all packaging materials and the damaged goods before filing the claim. The company is not liable for products damaged or lost during shipping.",266,0,,,['damaged'],1.0,"{""question"": ""If a customer received a damaged product, what should happen according to the policy?"", ""route"": ""pdf"", ""answer"": ""If a customer received a damaged product, they should contact the shipment carrier to file a claim. It is important to save all packaging materials and the damaged goods before filing the claim. The company is not liable for products damaged or lost during shipping."", ""cache_hit"": false, ""cache_type"": null, ""cache_similarity"": null, ""cached_question"": null, ""retriever_cache_hit"": false, ""retriever_cache_type"": null, ""retriever_cache_hits"": {}}"

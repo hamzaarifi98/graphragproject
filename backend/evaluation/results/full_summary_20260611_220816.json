@@ -1,0 +1,14 @@
+{
+  "total_questions": 15,
+  "error_rate": 0.1333,
+  "route_accuracy": 0.8,
+  "answer_present_rate": 0.8667,
+  "answer_enough_information_rate": 0.8,
+  "context_present_rate": 0.6667,
+  "avg_contains_score": 0.7,
+  "cache_hit_rate": 0.2,
+  "retriever_cache_hit_rate": 0.0,
+  "avg_latency_seconds": 18.9195,
+  "p50_latency_seconds": 4.1819,
+  "p95_latency_seconds": 73.24
+}

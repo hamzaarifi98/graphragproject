@@ -15,7 +15,7 @@ from backend.services.cache.retriever_cache import (
 load_dotenv()
 
 client = ChatOpenAI(
-    model="gpt-5.4-mini",
+    model="gpt-5.4",
     temperature=0,
 )
 
@@ -228,8 +228,20 @@ def ask_postgres_with_sql(question: str) -> dict:
 
 def postgres_retriever(state: QueryState) -> QueryState:
     sql_result = ask_postgres_with_sql(state["question"])
+    retriever_cache_hits = {
+        **state.get("retriever_cache_hits", {}),
+        "sql": sql_result["cache_hit"],
+    }
+    retriever_cache_types = [
+        cache_type
+        for cache_type, cache_hit in retriever_cache_hits.items()
+        if cache_hit
+    ]
 
     return {
         **state,
         "sql_context": str(sql_result),
+        "retriever_cache_hit": any(retriever_cache_hits.values()),
+        "retriever_cache_type": ", ".join(retriever_cache_types) or None,
+        "retriever_cache_hits": retriever_cache_hits,
     }

@@ -20,3 +20,7 @@ class QueryState(TypedDict):
     cache_type: NotRequired[str]
     cache_similarity: NotRequired[float]
     cached_question: NotRequired[str]
+
+    retriever_cache_hit: NotRequired[bool]
+    retriever_cache_type: NotRequired[str]
+    retriever_cache_hits: NotRequired[dict[str, bool]]

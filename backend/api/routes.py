@@ -123,6 +123,9 @@ async def ask_question(request: QueryRequest):
         "cache_type": result.get("cache_type"),
         "cache_similarity": result.get("cache_similarity"),
         "cached_question": result.get("cached_question"),
+        "retriever_cache_hit": result.get("retriever_cache_hit", False),
+        "retriever_cache_type": result.get("retriever_cache_type"),
+        "retriever_cache_hits": result.get("retriever_cache_hits", {}),
     }
 
 

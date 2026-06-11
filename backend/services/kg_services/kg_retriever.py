@@ -61,8 +61,20 @@ def ask_neo4j_with_cypher(question: str) -> dict:
 
 def kg_retriever(state: QueryState) -> QueryState:
     kg_result = ask_neo4j_with_cypher(state["question"])
+    retriever_cache_hits = {
+        **state.get("retriever_cache_hits", {}),
+        "neo4j": kg_result["cache_hit"],
+    }
+    retriever_cache_types = [
+        cache_type
+        for cache_type, cache_hit in retriever_cache_hits.items()
+        if cache_hit
+    ]
 
     return {
         **state,
         "kg_context": str(kg_result),
+        "retriever_cache_hit": any(retriever_cache_hits.values()),
+        "retriever_cache_type": ", ".join(retriever_cache_types) or None,
+        "retriever_cache_hits": retriever_cache_hits,
     }

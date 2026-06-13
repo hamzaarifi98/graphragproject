@@ -1,0 +1,124 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "What is the cancellation period for an order?",
+      "expected_output": "The customer may cancel the order within 14 days without giving any reason.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 2,
+      "question": "From what date does the 14-day cancellation deadline start?",
+      "expected_output": "The 14-day cancellation deadline starts from the date the customer receives the goods, or the date a third party appointed by the customer, other than the carrier, takes possession of the delivered product.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 3,
+      "question": "How can a customer inform the company about order cancellation?",
+      "expected_output": "The customer must inform the company with a clear statement, either by visiting the website contact page or by sending an email to the website contact email.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 4,
+      "question": "When will the customer be reimbursed after returning goods?",
+      "expected_output": "The company will reimburse the customer no later than 14 days from the day it receives the returned goods.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 5,
+      "question": "What payment method will be used for reimbursement?",
+      "expected_output": "The reimbursement will use the same payment method the customer used for the order, with no reimbursement fees charged to the customer.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 6,
+      "question": "What conditions must goods meet to be eligible for return?",
+      "expected_output": "Goods must have been purchased in the last 14 days and must be in the original packaging to be eligible for return.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 7,
+      "question": "Which types of goods cannot be returned?",
+      "expected_output": "Goods that cannot be returned include custom or personalized goods, goods unsuitable for return by nature or expired goods, goods unsealed after delivery for health or hygiene reasons, and goods that are inseparably mixed with other items after delivery.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 8,
+      "question": "Who pays the cost and takes the risk when returning goods?",
+      "expected_output": "The customer is responsible for the cost and risk of returning the goods.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 9,
+      "question": "Why does the return policy recommend insured and trackable mail?",
+      "expected_output": "The policy recommends insured and trackable mail because the company cannot be responsible for goods damaged or lost in return shipment and cannot issue a refund without receipt of the goods or proof of received return delivery.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 10,
+      "question": "What happens if returned goods were originally marked as a gift?",
+      "expected_output": "If the goods were marked as a gift and shipped directly to the customer, the customer receives a gift credit for the return value, and a gift certificate is mailed after the returned product is received.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 11,
+      "question": "What happens if the goods were not marked as a gift when purchased?",
+      "expected_output": "If the goods were not marked as a gift when purchased, or the gift giver had the order shipped to themselves to give later, the refund is sent to the gift giver.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 12,
+      "question": "How long does order processing take before shipment?",
+      "expected_output": "Orders are processed within 2-3 business days before shipment.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 13,
+      "question": "Are orders shipped on weekends or holidays?",
+      "expected_output": "No. Orders are not shipped or delivered on weekends or holidays.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 14,
+      "question": "What happens if there is a high volume of orders?",
+      "expected_output": "If there is a high volume of orders, shipments may be delayed by a few days. Customers should allow additional transit time, and the company will contact them by email or telephone if there is a significant delay.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 15,
+      "question": "What shipping methods are listed and what are their delivery times?",
+      "expected_output": "The listed methods are FedEx Standard, free, estimated 3-5 business days; FedEx Two Days, $12.95 USD, estimated 2 business days; and FedEx Standard, $19.95 USD, estimated 1-2 business days.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    }
+  ]
+}

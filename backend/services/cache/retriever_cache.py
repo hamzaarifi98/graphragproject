@@ -1,6 +1,8 @@
 import hashlib
 import json
 import os
+from collections.abc import Iterator
+from itertools import islice
 from typing import Any
 
 import redis
@@ -17,6 +19,13 @@ redis_client = redis.Redis.from_url(
     REDIS_URL,
     decode_responses=True,
 )
+
+CLEAR_BATCH_SIZE = 500
+
+
+def batched(iterator: Iterator[str], size: int = CLEAR_BATCH_SIZE) -> Iterator[list[str]]:
+    while batch := list(islice(iterator, size)):
+        yield batch
 
 
 def normalize_key(text: str) -> str:
@@ -58,7 +67,5 @@ def set_cached_retriever_result(
 
 
 def clear_retriever_cache(prefix: str) -> None:
-    keys = list(redis_client.scan_iter(f"{prefix}:*"))
-
-    if keys:
+    for keys in batched(redis_client.scan_iter(f"{prefix}:*")):
         redis_client.delete(*keys)

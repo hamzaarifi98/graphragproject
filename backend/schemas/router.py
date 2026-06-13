@@ -1,10 +1,7 @@
-from typing import Literal, NotRequired, Required, TypedDict
-
-
-
 # backend/schemas/router.py
 
-from typing import Literal, NotRequired, Required, TypedDict
+from typing import Literal
+from typing_extensions import NotRequired, Required, TypedDict
 
 
 class QueryState(TypedDict):
@@ -15,6 +12,15 @@ class QueryState(TypedDict):
     sql_context: NotRequired[str]
     kg_context: NotRequired[str]
     answer: NotRequired[str]
+
+    cypher_source: NotRequired[str]
+    kg_template_hit: NotRequired[bool]
+    kg_template_name: NotRequired[str]
+    kg_template_similarity: NotRequired[float]
+    sql_source: NotRequired[str]
+    sql_template_hit: NotRequired[bool]
+    sql_template_name: NotRequired[str]
+    sql_template_similarity: NotRequired[float]
 
     cache_hit: NotRequired[bool]
     cache_type: NotRequired[str]

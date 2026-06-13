@@ -1,6 +1,8 @@
-from sqlalchemy import text
 import sys
+from collections.abc import Callable, Iterable, Iterator
 from pathlib import Path
+
+from sqlalchemy import text
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 if str(PROJECT_ROOT) not in sys.path:
@@ -12,22 +14,39 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def fetch_rows(sql):
+def fetch_rows(sql) -> Iterator[dict]:
     with engine.connect() as pg:
-        return list(pg.execute(sql).mappings())
+        for row in pg.execute(sql).mappings():
+            yield row
 
 
-def chunks(rows, size=1000):
-    for index in range(0, len(rows), size):
-        yield rows[index:index + size]
+def chunks(rows: Iterable[dict], size: int = 1000) -> Iterator[list[dict]]:
+    batch = []
+
+    for row in rows:
+        batch.append(row)
+
+        if len(batch) == size:
+            yield batch
+            batch = []
+
+    if batch:
+        yield batch
 
 
-def run_batched(query, rows, batch_size=1000):
+def transform_rows(sql, transform: Callable[[dict], dict]) -> Iterator[dict]:
+    for row in fetch_rows(sql):
+        yield transform(row)
+
+
+def run_batched(query: str, rows: Iterable[dict], batch_size: int = 1000) -> int:
+    count = 0
     with neo4j_driver.session() as neo:
         for batch in chunks(rows, batch_size):
             neo.run(query, rows=batch)
+            count += len(batch)
 
-
+    return count
 
 
 def create_constraints() -> None:
@@ -59,21 +78,26 @@ def build_customers_and_orders() -> int:
         FROM olist.orders
     """)
 
-    count = 0
-    rows = [
-        {
+    def to_graph_row(row: dict) -> dict:
+        approved_at = row["order_approved_at"]
+        delivered_date = row["order_delivered_customer_date"]
+        estimated_date = row["order_estimated_delivery_date"]
+
+        return {
             "customer_id": row["customer_id"],
             "order_id": row["order_id"],
             "status": row["order_status"],
             "purchase_timestamp": str(row["order_purchase_timestamp"]),
-            "approved_at": str(row["order_approved_at"]) if row["order_approved_at"] else None,
-            "delivered_customer_date": str(row["order_delivered_customer_date"]) if row["order_delivered_customer_date"] else None,
-            "estimated_delivery_date": str(row["order_estimated_delivery_date"]) if row["order_estimated_delivery_date"] else None,
+            "approved_at": str(approved_at) if approved_at else None,
+            "delivered_customer_date": (
+                str(delivered_date) if delivered_date else None
+            ),
+            "estimated_delivery_date": (
+                str(estimated_date) if estimated_date else None
+            ),
         }
-        for row in fetch_rows(sql)
-    ]
 
-    run_batched(
+    return run_batched(
         """
         UNWIND $rows AS row
         MERGE (c:Customer {id: row.customer_id})
@@ -85,11 +109,8 @@ def build_customers_and_orders() -> int:
             o.estimated_delivery_date = row.estimated_delivery_date
         MERGE (c)-[:PLACED]->(o)
         """,
-        rows,
+        transform_rows(sql, to_graph_row),
     )
-    count = len(rows)
-
-    return count
 
 
 def build_products_sellers_and_items() -> int:
@@ -110,21 +131,22 @@ def build_products_sellers_and_items() -> int:
             ON p.product_category_name = t.product_category_name
     """)
 
-    count = 0
-    rows = [
-        {
+    def to_graph_row(row: dict) -> dict:
+        return {
             "order_id": row["order_id"],
             "product_id": row["product_id"],
             "seller_id": row["seller_id"],
             "item_id": row["order_item_id"],
             "price": float(row["price"]) if row["price"] is not None else None,
-            "freight_value": float(row["freight_value"]) if row["freight_value"] is not None else None,
+            "freight_value": (
+                float(row["freight_value"])
+                if row["freight_value"] is not None
+                else None
+            ),
             "category": row["product_category_name_english"] or row["product_category_name"],
         }
-        for row in fetch_rows(sql)
-    ]
 
-    run_batched(
+    return run_batched(
         """
         UNWIND $rows AS row
         MERGE (o:Order {id: row.order_id})
@@ -139,11 +161,8 @@ def build_products_sellers_and_items() -> int:
             MERGE (p)-[:IN_CATEGORY]->(c)
         )
         """,
-        rows,
+        transform_rows(sql, to_graph_row),
     )
-    count = len(rows)
-
-    return count
 
 
 def build_payments() -> int:
@@ -157,19 +176,16 @@ def build_payments() -> int:
         FROM olist.order_payments
     """)
 
-    count = 0
-    rows = [
-        {
+    def to_graph_row(row: dict) -> dict:
+        return {
             "order_id": row["order_id"],
             "payment_id": f"{row['order_id']}:{row['payment_sequential']}",
             "payment_type": row["payment_type"],
             "installments": row["payment_installments"],
             "value": float(row["payment_value"]) if row["payment_value"] is not None else None,
         }
-        for row in fetch_rows(sql)
-    ]
 
-    run_batched(
+    return run_batched(
         """
         UNWIND $rows AS row
         MERGE (o:Order {id: row.order_id})
@@ -179,11 +195,8 @@ def build_payments() -> int:
             p.value = row.value
         MERGE (o)-[:HAS_PAYMENT]->(p)
         """,
-        rows,
+        transform_rows(sql, to_graph_row),
     )
-    count = len(rows)
-
-    return count
 
 
 def build_reviews() -> int:
@@ -198,9 +211,8 @@ def build_reviews() -> int:
         FROM olist.order_reviews
     """)
 
-    count = 0
-    rows = [
-        {
+    def to_graph_row(row: dict) -> dict:
+        return {
             "order_id": row["order_id"],
             "review_id": row["review_id"],
             "score": row["review_score"],
@@ -208,10 +220,8 @@ def build_reviews() -> int:
             "message": row["review_comment_message"],
             "created_at": str(row["review_creation_date"]) if row["review_creation_date"] else None,
         }
-        for row in fetch_rows(sql)
-    ]
 
-    run_batched(
+    return run_batched(
         """
         UNWIND $rows AS row
         MERGE (o:Order {id: row.order_id})
@@ -222,11 +232,8 @@ def build_reviews() -> int:
             r.created_at = row.created_at
         MERGE (o)-[:HAS_REVIEW]->(r)
         """,
-        rows,
+        transform_rows(sql, to_graph_row),
     )
-    count = len(rows)
-
-    return count
 
 
 def build_knowledge_graph() -> dict[str, int]:

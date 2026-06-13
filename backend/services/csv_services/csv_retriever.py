@@ -1,9 +1,12 @@
 import re
+from dataclasses import dataclass
+from functools import lru_cache
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from sqlalchemy import text
 
+from backend.constants.constants import OPENAI_CHAT_MODEL
 from backend.core.postgre import engine
 from backend.schemas.router import QueryState
 from backend.services.cache.retriever_cache import (
@@ -11,16 +14,18 @@ from backend.services.cache.retriever_cache import (
     get_cached_retriever_result,
     set_cached_retriever_result,
 )
+from backend.services.csv_services.sql_query_templates import find_sql_query_template
 
 load_dotenv()
 
+
 client = ChatOpenAI(
-    model="gpt-5.4",
+    model=OPENAI_CHAT_MODEL,
     temperature=0,
 )
 
 
-ALLOWED_TABLES = [
+ALLOWED_TABLES = (
     "customers",
     "geolocation",
     "order_items",
@@ -30,11 +35,37 @@ ALLOWED_TABLES = [
     "products",
     "sellers",
     "product_category_translation",
-]
+)
 
 ALLOWED_TABLE_SET = set(ALLOWED_TABLES)
+BLOCKED_SQL_KEYWORDS = (
+    "insert",
+    "update",
+    "delete",
+    "drop",
+    "alter",
+    "create",
+    "truncate",
+    "grant",
+    "revoke",
+)
+SQL_FENCE_PATTERN = re.compile(r"```(?:sql)?|```", re.IGNORECASE)
+AVG_ROUND_PATTERN = re.compile(
+    r"ROUND\((AVG\([^)]+\))\s*,\s*(\d+)\)",
+    re.IGNORECASE,
+)
+TABLE_REFERENCE_PATTERN = re.compile(r"\bolist\.([a-z_][a-z0-9_]*)\b")
 
 
+@dataclass(frozen=True)
+class GeneratedSql:
+    sql: str
+    source: str
+    template_name: str | None = None
+    template_similarity: float | None = None
+
+
+@lru_cache(maxsize=1)
 def get_database_schema() -> str:
     with engine.connect() as connection:
         rows = connection.execute(
@@ -55,52 +86,20 @@ def get_database_schema() -> str:
     return "\n".join(schema_lines)
 
 
-def generate_known_sql(question: str) -> str | None:
-    normalized = " ".join(question.strip().lower().split())
-
-    asks_best_seller = (
-        "best seller" in normalized
-        or "top seller" in normalized
-        or "sold most" in normalized
-        or "most sold" in normalized
-    )
-    asks_revenue = any(
-        term in normalized
-        for term in ["revenue", "sales", "value", "amount", "money"]
-    )
-
-    if asks_best_seller and asks_revenue:
-        return """
-            SELECT
-                oi.seller_id,
-                COUNT(DISTINCT oi.order_id) AS order_count,
-                ROUND(SUM(oi.price)::numeric, 2) AS total_revenue
-            FROM olist.order_items AS oi
-            GROUP BY oi.seller_id
-            ORDER BY total_revenue DESC
-            LIMIT 1
-        """
-
-    if asks_best_seller:
-        return """
-            SELECT
-                oi.seller_id,
-                COUNT(DISTINCT oi.order_id) AS order_count,
-                ROUND(SUM(oi.price)::numeric, 2) AS total_revenue
-            FROM olist.order_items AS oi
-            GROUP BY oi.seller_id
-            ORDER BY order_count DESC
-            LIMIT 1
-        """
-
-    return None
-
-
 def generate_sql(question: str) -> str:
-    known_sql = generate_known_sql(question)
+    return generate_sql_result(question).sql
 
-    if known_sql:
-        return known_sql.strip()
+
+def generate_sql_result(question: str) -> GeneratedSql:
+    template_match = find_sql_query_template(question)
+
+    if template_match:
+        return GeneratedSql(
+            sql=template_match.template.sql.strip(),
+            source="template",
+            template_name=template_match.template.name,
+            template_similarity=round(template_match.similarity, 4),
+        )
 
     schema = get_database_schema()
 
@@ -135,18 +134,13 @@ Database schema:
     )
 
     sql = response.content.strip()
-    sql = sql.replace("```sql", "").replace("```", "").strip()
+    sql = SQL_FENCE_PATTERN.sub("", sql).strip()
 
-    return sql
+    return GeneratedSql(sql=sql, source="llm")
 
 
 def fix_postgres_round(sql: str) -> str:
-    return re.sub(
-        r"ROUND\((AVG\([^)]+\))\s*,\s*(\d+)\)",
-        r"ROUND(\1::numeric, \2)",
-        sql,
-        flags=re.IGNORECASE,
-    )
+    return AVG_ROUND_PATTERN.sub(r"ROUND(\1::numeric, \2)", sql)
 
 
 def validate_sql(sql: str) -> None:
@@ -155,28 +149,14 @@ def validate_sql(sql: str) -> None:
     if not normalized.startswith("select"):
         raise ValueError("Only SELECT queries are allowed")
 
-    blocked_keywords = [
-        "insert",
-        "update",
-        "delete",
-        "drop",
-        "alter",
-        "create",
-        "truncate",
-        "grant",
-        "revoke",
-    ]
-
-    for keyword in blocked_keywords:
+    for keyword in BLOCKED_SQL_KEYWORDS:
         if re.search(rf"\b{keyword}\b", normalized):
             raise ValueError(f"Blocked SQL keyword: {keyword}")
 
     if "olist." not in normalized:
         raise ValueError("Query must use the olist schema")
 
-    referenced_tables = set(
-        re.findall(r"\bolist\.([a-z_][a-z0-9_]*)\b", normalized)
-    )
+    referenced_tables = set(TABLE_REFERENCE_PATTERN.findall(normalized))
     unknown_tables = referenced_tables - ALLOWED_TABLE_SET
 
     if unknown_tables:
@@ -204,11 +184,16 @@ def ask_postgres_with_sql(question: str) -> dict:
             "cache_type": "sql",
         }
 
-    sql = generate_sql(question)
+    generated = generate_sql_result(question)
+    sql = generated.sql
     rows = run_sql(sql)
 
     result = {
         "sql": sql,
+        "sql_source": generated.source,
+        "sql_template_hit": generated.source == "template",
+        "sql_template_name": generated.template_name,
+        "sql_template_similarity": generated.template_similarity,
         "rows": rows,
     }
 
@@ -241,7 +226,19 @@ def postgres_retriever(state: QueryState) -> QueryState:
     return {
         **state,
         "sql_context": str(sql_result),
+        "sql_source": sql_result.get("sql_source"),
+        "sql_template_hit": sql_result.get("sql_template_hit", False),
+        "sql_template_name": sql_result.get("sql_template_name"),
+        "sql_template_similarity": sql_result.get("sql_template_similarity"),
         "retriever_cache_hit": any(retriever_cache_hits.values()),
         "retriever_cache_type": ", ".join(retriever_cache_types) or None,
         "retriever_cache_hits": retriever_cache_hits,
     }
+
+
+
+def main():
+    return ask_postgres_with_sql()
+
+if __name__ == "__main__":
+    main()

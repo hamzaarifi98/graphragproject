@@ -1,0 +1,404 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "What is the cancellation period for an order?",
+      "expected_output": "The customer may cancel the order within 14 days without giving any reason.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 2,
+      "question": "From what date does the 14-day cancellation deadline start?",
+      "expected_output": "The 14-day cancellation deadline starts from the date the customer receives the goods, or the date a third party appointed by the customer, other than the carrier, takes possession of the delivered product.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 3,
+      "question": "How can a customer inform the company about order cancellation?",
+      "expected_output": "The customer must inform the company with a clear statement, either by visiting the website contact page or by sending an email to the website contact email.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 4,
+      "question": "When will the customer be reimbursed after returning goods?",
+      "expected_output": "The company will reimburse the customer no later than 14 days from the day it receives the returned goods.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 5,
+      "question": "What payment method will be used for reimbursement?",
+      "expected_output": "The reimbursement will use the same payment method the customer used for the order, with no reimbursement fees charged to the customer.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 6,
+      "question": "What conditions must goods meet to be eligible for return?",
+      "expected_output": "Goods must have been purchased in the last 14 days and must be in the original packaging to be eligible for return.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 7,
+      "question": "Which types of goods cannot be returned?",
+      "expected_output": "Goods that cannot be returned include custom or personalized goods, goods unsuitable for return by nature or expired goods, goods unsealed after delivery for health or hygiene reasons, and goods that are inseparably mixed with other items after delivery.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 8,
+      "question": "Who pays the cost and takes the risk when returning goods?",
+      "expected_output": "The customer is responsible for the cost and risk of returning the goods.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 9,
+      "question": "Why does the return policy recommend insured and trackable mail?",
+      "expected_output": "The policy recommends insured and trackable mail because the company cannot be responsible for goods damaged or lost in return shipment and cannot issue a refund without receipt of the goods or proof of received return delivery.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 10,
+      "question": "What happens if returned goods were originally marked as a gift?",
+      "expected_output": "If the goods were marked as a gift and shipped directly to the customer, the customer receives a gift credit for the return value, and a gift certificate is mailed after the returned product is received.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 11,
+      "question": "What happens if the goods were not marked as a gift when purchased?",
+      "expected_output": "If the goods were not marked as a gift when purchased, or the gift giver had the order shipped to themselves to give later, the refund is sent to the gift giver.",
+      "expected_sources": [
+        "sample-return-refund-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 12,
+      "question": "How long does order processing take before shipment?",
+      "expected_output": "Orders are processed within 2-3 business days before shipment.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 13,
+      "question": "Are orders shipped on weekends or holidays?",
+      "expected_output": "No. Orders are not shipped or delivered on weekends or holidays.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 14,
+      "question": "What happens if there is a high volume of orders?",
+      "expected_output": "If there is a high volume of orders, shipments may be delayed by a few days. Customers should allow additional transit time, and the company will contact them by email or telephone if there is a significant delay.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 15,
+      "question": "What shipping methods are listed and what are their delivery times?",
+      "expected_output": "The listed methods are FedEx Standard, free, estimated 3-5 business days; FedEx Two Days, $12.95 USD, estimated 2 business days; and FedEx Standard, $19.95 USD, estimated 1-2 business days.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 16,
+      "question": "Which shipping option is free?",
+      "expected_output": "FedEx Standard with an estimated delivery time of 3-5 business days is free.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 17,
+      "question": "What is the cost of FedEx Two Days shipping?",
+      "expected_output": "FedEx Two Days shipping costs $12.95 USD.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 18,
+      "question": "Where is overnight delivery available?",
+      "expected_output": "Overnight delivery is only available for orders with delivery addresses within the continental United States.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 19,
+      "question": "Does the company ship to P.O. boxes or APO/FPO/DPO addresses?",
+      "expected_output": "Yes. The company ships to addresses within the U.S., U.S. Territories, and APO/FPO/DPO addresses.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 20,
+      "question": "When does the tracking number become active?",
+      "expected_output": "The tracking number becomes active within 24 hours after the shipment confirmation email is sent.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 21,
+      "question": "Who is responsible for customs, duties, taxes, tariffs, and fees?",
+      "expected_output": "The customer is responsible for all fees imposed during or after shipping, including customs, duties, taxes, and tariffs.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 22,
+      "question": "What should a customer do if the order arrives damaged?",
+      "expected_output": "If the order arrives damaged, the customer should contact the shipment carrier to file a claim and save all packaging materials and damaged goods before filing the claim.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 23,
+      "question": "Is the company liable for products damaged or lost during shipping?",
+      "expected_output": "No. The company is not liable for products damaged or lost during shipping.",
+      "expected_sources": [
+        "sample-shipping-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 24,
+      "question": "What personal data may the company ask users to provide?",
+      "expected_output": "The company may ask users to provide personally identifiable information such as email address, first and last name, phone number, address, state, province, ZIP or postal code, city, and usage data.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 25,
+      "question": "What is Usage Data according to the privacy policy?",
+      "expected_output": "Usage Data is data collected automatically, either generated by use of the service or from the service infrastructure itself, such as the duration of a page visit.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 26,
+      "question": "What types of cookies are described in the privacy policy?",
+      "expected_output": "The policy describes Necessary or Essential Cookies, Cookies Policy or Notice Acceptance Cookies, Functionality Cookies, and Tracking and Performance Cookies.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 27,
+      "question": "What are Necessary or Essential Cookies used for?",
+      "expected_output": "Necessary or Essential Cookies are used to provide services available through the website, enable features, authenticate users, and prevent fraudulent use of user accounts.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 28,
+      "question": "Who administers Tracking and Performance Cookies?",
+      "expected_output": "Tracking and Performance Cookies are administered by third parties.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 29,
+      "question": "For what purposes may the company use personal data?",
+      "expected_output": "The company may use personal data to provide and maintain the service, manage accounts, perform contracts, contact users, provide news and offers, manage requests, conduct business transfers, and for other purposes such as analysis, identifying trends, improving services, marketing, and user experience.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 30,
+      "question": "In what situations may the company share personal information?",
+      "expected_output": "The company may share personal information with service providers, for business transfers, with affiliates, with business partners, with other users in public areas, and with the user's consent.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 31,
+      "question": "How long does the company retain personal data?",
+      "expected_output": "The company retains personal data only as long as necessary for the purposes in the privacy policy, and as needed to comply with legal obligations, resolve disputes, and enforce agreements and policies. Usage Data is generally retained for a shorter period unless needed for security, functionality, or legal obligations.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 32,
+      "question": "Can personal data be transferred outside the user's country or jurisdiction?",
+      "expected_output": "Yes. Personal data may be transferred to and maintained on computers outside the user's state, province, country, or other governmental jurisdiction, where data protection laws may differ.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 33,
+      "question": "Under what circumstances can personal data be disclosed to law enforcement?",
+      "expected_output": "Personal data may be disclosed to law enforcement if required to do so by law or in response to valid requests by public authorities, such as a court or government agency.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 34,
+      "question": "Does the company guarantee absolute security of personal data?",
+      "expected_output": "No. The policy says no method of transmission over the internet or electronic storage is 100% secure, so absolute security cannot be guaranteed.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 35,
+      "question": "Does the company store payment card details?",
+      "expected_output": "No. The company does not store or collect payment card details. That information is provided directly to third-party payment processors.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 36,
+      "question": "What are the GDPR legal bases for processing personal data?",
+      "expected_output": "The GDPR legal bases include consent, performance of a contract, legal obligations, vital interests, public interests, and legitimate interests pursued by the company.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 37,
+      "question": "What rights does a user have under GDPR?",
+      "expected_output": "Under GDPR, users may have the right to access, update, delete, correct, object to, restrict, request transfer of, and withdraw consent for their personal data.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 38,
+      "question": "How can a user exercise GDPR data protection rights?",
+      "expected_output": "A user can exercise GDPR rights by contacting the company. The company may ask the user to verify their identity before responding.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 39,
+      "question": "What categories of personal information are collected under CCPA?",
+      "expected_output": "The CCPA section lists categories such as identifiers, personal information categories under California customer records law, protected classification characteristics, commercial information, biometric information, internet or similar network activity, geolocation data, sensory data, professional or employment-related information, non-public education information, and inferences.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 40,
+      "question": "Does the CCPA section say biometric information is collected?",
+      "expected_output": "No. The CCPA section lists biometric information but marks it as collected: No.",
+      "expected_sources": [
+        "sample-privacy-policy-template.pdf"
+      ]
+    },
+    {
+      "id": 41,
+      "question": "What age must a user represent they are to use the service?",
+      "expected_output": "The user must represent that they are over the age of 18 to use the service.",
+      "expected_sources": [
+        "sample-terms-conditions-agreement.pdf"
+      ]
+    },
+    {
+      "id": 42,
+      "question": "What happens if a user provides inaccurate or incomplete account information?",
+      "expected_output": "Providing inaccurate, incomplete, or outdated account information is a breach of the Terms and may result in immediate termination of the user's account.",
+      "expected_sources": [
+        "sample-terms-conditions-agreement.pdf"
+      ]
+    },
+    {
+      "id": 43,
+      "question": "Who is responsible for safeguarding the account password?",
+      "expected_output": "The user is responsible for safeguarding the password used to access the service and for any activities or actions under that password.",
+      "expected_sources": [
+        "sample-terms-conditions-agreement.pdf"
+      ]
+    },
+    {
+      "id": 44,
+      "question": "What rights does the company receive when a user posts content?",
+      "expected_output": "By posting content, the user grants the company the right and license to use, modify, publicly perform, publicly display, reproduce, and distribute that content on and through the service.",
+      "expected_sources": [
+        "sample-terms-conditions-agreement.pdf"
+      ]
+    },
+    {
+      "id": 45,
+      "question": "What types of content are restricted or prohibited?",
+      "expected_output": "Restricted content includes unlawful content, defamatory or discriminatory content, spam or unauthorized solicitation, malware or harmful code, content infringing proprietary rights, impersonation, privacy violations, false information, and other objectionable content.",
+      "expected_sources": [
+        "sample-terms-conditions-agreement.pdf"
+      ]
+    },
+    {
+      "id": 46,
+      "question": "What should a copyright owner do to report alleged copyright infringement?",
+      "expected_output": "A copyright owner, or someone authorized on their behalf, must submit a written notice to the company copyright agent by email and include a detailed description of the alleged infringement.",
+      "expected_sources": [
+        "sample-terms-conditions-agreement.pdf"
+      ]
+    },
+    {
+      "id": 47,
+      "question": "When may the company terminate or suspend a user account?",
+      "expected_output": "The company may terminate or suspend a user account immediately, without prior notice or liability, for any reason, including if the user breaches the Terms and Conditions.",
+      "expected_sources": [
+        "sample-terms-conditions-agreement.pdf"
+      ]
+    },
+    {
+      "id": 48,
+      "question": "What law governs the Terms and use of the Service?",
+      "expected_output": "The laws of the Country, excluding conflict of law rules, govern the Terms and the user's use of the Service.",
+      "expected_sources": [
+        "sample-terms-conditions-agreement.pdf"
+      ]
+    },
+    {
+      "id": 49,
+      "question": "What should a user do first if they have a dispute about the Service?",
+      "expected_output": "If a user has a concern or dispute about the Service, they agree to first try to resolve it informally by contacting the company.",
+      "expected_sources": [
+        "sample-terms-conditions-agreement.pdf"
+      ]
+    },
+    {
+      "id": 50,
+      "question": "How much notice will the company try to give before material Terms changes take effect?",
+      "expected_output": "If a Terms revision is material, the company will make reasonable efforts to provide at least 30 days' notice before the new terms take effect.",
+      "expected_sources": [
+        "sample-terms-conditions-agreement.pdf"
+      ]
+    }
+  ]
+}

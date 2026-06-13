@@ -1,11 +1,38 @@
+import re
+
 from sqlalchemy import text
 
 from backend.core.pgvector import create_vector_table
 from backend.core.postgre import engine
 
+PDF_CHUNK_INSERT_QUERY = text("""
+    INSERT INTO document_chunks (
+        source_name,
+        source_type,
+        chunk_index,
+        content,
+        embedding
+    )
+    VALUES (
+        :source_name,
+        :source_type,
+        :chunk_index,
+        :content,
+        CAST(:embedding AS vector)
+    )
+""")
+VALID_IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
 
 def format_embedding_for_pgvector(embedding: list[float]) -> str:
-    return "[" + ",".join(str(value) for value in embedding) + "]"
+    return "[" + ",".join(format(value, ".17g") for value in embedding) + "]"
+
+
+def quote_identifier(identifier: str) -> str:
+    if not VALID_IDENTIFIER_PATTERN.fullmatch(identifier):
+        raise ValueError(f"Invalid SQL identifier: {identifier}")
+
+    return f'"{identifier}"'
 
 
 def save_pdf_chunks(
@@ -13,7 +40,23 @@ def save_pdf_chunks(
     chunks: list[str],
     embeddings: list[list[float]],
 ) -> int:
+    if len(chunks) != len(embeddings):
+        raise ValueError(
+            "Chunks and embeddings must have the same length. "
+            f"Got {len(chunks)} chunks and {len(embeddings)} embeddings."
+        )
+
     create_vector_table()
+    chunk_rows = [
+        {
+            "source_name": source_name,
+            "source_type": "pdf",
+            "chunk_index": chunk_index,
+            "content": chunk,
+            "embedding": format_embedding_for_pgvector(embedding),
+        }
+        for chunk_index, (chunk, embedding) in enumerate(zip(chunks, embeddings))
+    ]
 
     with engine.begin() as connection:
         connection.execute(
@@ -21,32 +64,8 @@ def save_pdf_chunks(
             {"source_name": source_name},
         )
 
-        for chunk_index, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
-            connection.execute(
-                text("""
-                    INSERT INTO document_chunks (
-                        source_name,
-                        source_type,
-                        chunk_index,
-                        content,
-                        embedding
-                    )
-                    VALUES (
-                        :source_name,
-                        :source_type,
-                        :chunk_index,
-                        :content,
-                        CAST(:embedding AS vector)
-                    )
-                """),
-                {
-                    "source_name": source_name,
-                    "source_type": "pdf",
-                    "chunk_index": chunk_index,
-                    "content": chunk,
-                    "embedding": format_embedding_for_pgvector(embedding),
-                },
-            )
+        if chunk_rows:
+            connection.execute(PDF_CHUNK_INSERT_QUERY, chunk_rows)
 
     return len(chunks)
 
@@ -70,18 +89,27 @@ def list_olist_tables() -> list[dict[str, int | str]]:
         tables = []
         for row in rows:
             table_name = row["table_name"]
+            safe_table_name = quote_identifier(table_name)
             count = connection.execute(
-                text(f'SELECT COUNT(*) AS row_count FROM olist."{table_name}"')
+                text(f"SELECT COUNT(*) AS row_count FROM olist.{safe_table_name}")
             ).scalar_one()
-            tables.append({"schema": "olist", "table_name": table_name, "row_count": count})
+            tables.append(
+                {
+                    "schema": "olist",
+                    "table_name": table_name,
+                    "row_count": count,
+                }
+            )
 
     return tables
 
 
 def get_olist_rows(table_name: str, limit: int = 50) -> list[dict]:
+    safe_table_name = quote_identifier(table_name)
+
     with engine.connect() as connection:
         rows = connection.execute(
-            text(f'SELECT * FROM olist."{table_name}" LIMIT :limit'),
+            text(f"SELECT * FROM olist.{safe_table_name} LIMIT :limit"),
             {"limit": limit},
         ).mappings()
 

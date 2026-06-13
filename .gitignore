@@ -8,3 +8,6 @@ __pycache__/
 .gitignore   
 .neo4j-local
 /docs
+backend/evaluation/results/
+backend/evaluation/test/
+backend/evaluation/goal.json

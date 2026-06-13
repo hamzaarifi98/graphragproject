@@ -6,7 +6,7 @@ from backend.services.cache.retriever_cache import (
     get_cached_retriever_result,
     set_cached_retriever_result,
 )
-from backend.services.kg_services.llm_query import generate_cypher, validate_cypher
+from backend.services.kg_services.llm_query import generate_cypher_result, validate_cypher
 from backend.services.kg_services.kg_query import run_cypher
 
 
@@ -20,7 +20,8 @@ def ask_neo4j_with_cypher(question: str) -> dict:
             "cache_type": "neo4j",
         }
 
-    cypher = generate_cypher(question)
+    generated = generate_cypher_result(question)
+    cypher = generated.cypher
     validate_cypher(cypher)
 
     try:
@@ -28,12 +29,21 @@ def ask_neo4j_with_cypher(question: str) -> dict:
     except ClientError as exc:
         first_error = str(exc)
         try:
-            cypher = generate_cypher(question, previous_cypher=cypher, error=first_error)
+            generated = generate_cypher_result(
+                question,
+                previous_cypher=cypher,
+                error=first_error,
+            )
+            cypher = generated.cypher
             validate_cypher(cypher)
             rows = run_cypher(cypher)
         except (ClientError, ValueError) as retry_exc:
             return {
                 "cypher": cypher,
+                "cypher_source": generated.source,
+                "kg_template_hit": generated.source == "template",
+                "kg_template_name": generated.template_name,
+                "kg_template_similarity": generated.template_similarity,
                 "rows": [],
                 "error": f"Neo4j query failed after retry: {retry_exc}",
                 "cache_hit": False,
@@ -42,6 +52,10 @@ def ask_neo4j_with_cypher(question: str) -> dict:
 
     result = {
         "cypher": cypher,
+        "cypher_source": generated.source,
+        "kg_template_hit": generated.source == "template",
+        "kg_template_name": generated.template_name,
+        "kg_template_similarity": generated.template_similarity,
         "rows": rows,
     }
 
@@ -74,6 +88,10 @@ def kg_retriever(state: QueryState) -> QueryState:
     return {
         **state,
         "kg_context": str(kg_result),
+        "cypher_source": kg_result.get("cypher_source"),
+        "kg_template_hit": kg_result.get("kg_template_hit", False),
+        "kg_template_name": kg_result.get("kg_template_name"),
+        "kg_template_similarity": kg_result.get("kg_template_similarity"),
         "retriever_cache_hit": any(retriever_cache_hits.values()),
         "retriever_cache_type": ", ".join(retriever_cache_types) or None,
         "retriever_cache_hits": retriever_cache_hits,

@@ -1,9 +1,12 @@
 import re
+from dataclasses import dataclass
+
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from neo4j.exceptions import ClientError
 
 from backend.services.kg_services.kg_query import run_cypher
+from backend.services.kg_services.kg_query_templates import find_kg_query_template
 
 load_dotenv()
 
@@ -33,15 +36,15 @@ Relationships:
 """
 
 
-TEMPORAL_PROPERTIES = [
+TEMPORAL_PROPERTIES = (
     "purchase_timestamp",
     "approved_at",
     "delivered_customer_date",
     "estimated_delivery_date",
     "created_at",
-]
+)
 
-BLOCKED_WORDS = [
+BLOCKED_WORDS = (
     "CREATE",
     "MERGE",
     "DELETE",
@@ -51,10 +54,81 @@ BLOCKED_WORDS = [
     "DROP",
     "LOAD",
     "CALL",
-]
+)
+BLOCKED_TEMPORAL_PATTERNS = ("EPOCHMILLIS", "TOMILLIS", "MILLISECOND")
+READ_ONLY_CYPHER_PATTERN = re.compile(r"^\s*(MATCH|OPTIONAL MATCH)\b", re.IGNORECASE)
+CODE_FENCE_PATTERN = re.compile(r"```(?:cypher)?|```", re.IGNORECASE)
+BLOCKED_WORD_PATTERN = re.compile(
+    r"\b(" + "|".join(re.escape(word) for word in BLOCKED_WORDS) + r")\b",
+    re.IGNORECASE,
+)
+RELATIVE_DATETIME_REPLACEMENTS = (
+    (
+        re.compile(
+            r"datetime\(\)\.epochMillis\s*-\s*"
+            r"duration\(['\"]P(\d+)M['\"]\)\.toMillis\(\)",
+            re.IGNORECASE,
+        ),
+        r"datetime() - duration({months: \1})",
+    ),
+    (
+        re.compile(
+            r"datetime\(\)\.epochMillis\s*-\s*"
+            r"duration\(['\"]P(\d+)D['\"]\)\.toMillis\(\)",
+            re.IGNORECASE,
+        ),
+        r"datetime() - duration({days: \1})",
+    ),
+    (
+        re.compile(
+            r"datetime\(\)\.epochMillis\s*-\s*"
+            r"duration\(['\"]P(\d+)Y['\"]\)\.toMillis\(\)",
+            re.IGNORECASE,
+        ),
+        r"datetime() - duration({years: \1})",
+    ),
+)
+TEMPORAL_REFERENCE_PATTERNS = tuple(
+    re.compile(
+        rf"(?<!replace\()(?<!datetime\()\b([a-zA-Z_][a-zA-Z0-9_]*)\.{prop}\b"
+    )
+    for prop in TEMPORAL_PROPERTIES
+)
 
 
-def generate_cypher(question: str, previous_cypher: str | None = None, error: str | None = None) -> str:
+@dataclass(frozen=True)
+class GeneratedCypher:
+    cypher: str
+    source: str
+    template_name: str | None = None
+    template_similarity: float | None = None
+
+
+def generate_cypher(
+    question: str,
+    previous_cypher: str | None = None,
+    error: str | None = None,
+) -> str:
+    return generate_cypher_result(question, previous_cypher, error).cypher
+
+
+def generate_cypher_result(
+    question: str,
+    previous_cypher: str | None = None,
+    error: str | None = None,
+) -> GeneratedCypher:
+    template_match = None
+    if not previous_cypher and not error:
+        template_match = find_kg_query_template(question)
+
+    if template_match:
+        return GeneratedCypher(
+            cypher=template_match.template.cypher.strip(),
+            source="template",
+            template_name=template_match.template.name,
+            template_similarity=round(template_match.similarity, 4),
+        )
+
     repair_context = ""
     if previous_cypher and error:
         repair_context = f"""
@@ -99,48 +173,34 @@ Rules:
 
     response = client.invoke(
         [
-            {"role": "system", "content": "You generate safe read-only Neo4j Cypher queries."},
+            {
+                "role": "system",
+                "content": "You generate safe read-only Neo4j Cypher queries.",
+            },
             {"role": "user", "content": prompt},
         ]
     )
 
     cypher = response.content.strip()
-    cypher = cypher.replace("```cypher", "").replace("```", "").strip()
-    return normalize_temporal_cypher(cypher)
+    cypher = CODE_FENCE_PATTERN.sub("", cypher).strip()
+    return GeneratedCypher(
+        cypher=normalize_temporal_cypher(cypher),
+        source="llm_repair" if previous_cypher and error else "llm",
+    )
 
 
 def normalize_temporal_cypher(cypher: str) -> str:
     cypher = normalize_relative_datetime_cypher(cypher)
 
-    for prop in TEMPORAL_PROPERTIES:
-        pattern = rf"(?<!replace\()(?<!datetime\()\b([a-zA-Z_][a-zA-Z0-9_]*)\.{prop}\b"
-        cypher = re.sub(
-            pattern,
-            lambda match: _temporal_reference(match.group(0)),
-            cypher,
-        )
+    for pattern in TEMPORAL_REFERENCE_PATTERNS:
+        cypher = pattern.sub(lambda match: _temporal_reference(match.group(0)), cypher)
 
     return cypher
 
 
 def normalize_relative_datetime_cypher(cypher: str) -> str:
-    replacements = [
-        (
-            r"datetime\(\)\.epochMillis\s*-\s*duration\(['\"]P(\d+)M['\"]\)\.toMillis\(\)",
-            r"datetime() - duration({months: \1})",
-        ),
-        (
-            r"datetime\(\)\.epochMillis\s*-\s*duration\(['\"]P(\d+)D['\"]\)\.toMillis\(\)",
-            r"datetime() - duration({days: \1})",
-        ),
-        (
-            r"datetime\(\)\.epochMillis\s*-\s*duration\(['\"]P(\d+)Y['\"]\)\.toMillis\(\)",
-            r"datetime() - duration({years: \1})",
-        ),
-    ]
-
-    for pattern, replacement in replacements:
-        cypher = re.sub(pattern, replacement, cypher, flags=re.IGNORECASE)
+    for pattern, replacement in RELATIVE_DATETIME_REPLACEMENTS:
+        cypher = pattern.sub(replacement, cypher)
 
     return cypher
 
@@ -155,15 +215,16 @@ def _temporal_reference(reference: str) -> str:
 def validate_cypher(cypher: str) -> None:
     upper = cypher.upper()
 
-    if not re.match(r"^\s*(MATCH|OPTIONAL MATCH)\b", upper):
+    if not READ_ONLY_CYPHER_PATTERN.match(cypher):
         raise ValueError("Only read-only MATCH queries are allowed.")
 
-    for word in BLOCKED_WORDS:
-        if re.search(rf"\b{word}\b", upper):
-            raise ValueError(f"Blocked unsafe Cypher keyword: {word}")
+    blocked_word_match = BLOCKED_WORD_PATTERN.search(cypher)
+    if blocked_word_match:
+        raise ValueError(
+            f"Blocked unsafe Cypher keyword: {blocked_word_match.group(1).upper()}"
+        )
 
-    blocked_temporal_patterns = ["EPOCHMILLIS", "TOMILLIS", "MILLISECOND"]
-    for pattern in blocked_temporal_patterns:
+    for pattern in BLOCKED_TEMPORAL_PATTERNS:
         if pattern in upper:
             raise ValueError(f"Blocked invalid temporal expression: {pattern}")
 
@@ -177,7 +238,11 @@ def summarize_answer(question: str, rows: list[dict]) -> str:
             },
             {
                 "role": "user",
-                "content": f"Question: {question}\n\nRows: {rows[:50]}\n\nAnswer clearly and briefly.",
+                "content": (
+                    f"Question: {question}\n\n"
+                    f"Rows: {rows[:50]}\n\n"
+                    "Answer clearly and briefly."
+                ),
             },
         ]
     )
@@ -186,7 +251,8 @@ def summarize_answer(question: str, rows: list[dict]) -> str:
 
 
 def ask_graph(question: str) -> dict:
-    cypher = generate_cypher(question)
+    generated = generate_cypher_result(question)
+    cypher = generated.cypher
     validate_cypher(cypher)
 
     try:
@@ -194,13 +260,22 @@ def ask_graph(question: str) -> dict:
     except ClientError as exc:
         first_error = str(exc)
         try:
-            cypher = generate_cypher(question, previous_cypher=cypher, error=first_error)
+            generated = generate_cypher_result(
+                question,
+                previous_cypher=cypher,
+                error=first_error,
+            )
+            cypher = generated.cypher
             validate_cypher(cypher)
             rows = run_cypher(cypher)
         except (ClientError, ValueError) as retry_exc:
             return {
                 "question": question,
                 "cypher": cypher,
+                "cypher_source": generated.source,
+                "kg_template_hit": generated.source == "template",
+                "kg_template_name": generated.template_name,
+                "kg_template_similarity": generated.template_similarity,
                 "rows": [],
                 "answer": "I could not run a valid Neo4j query for that question.",
                 "error": f"Neo4j query failed after retry: {retry_exc}",
@@ -211,6 +286,10 @@ def ask_graph(question: str) -> dict:
     return {
         "question": question,
         "cypher": cypher,
+        "cypher_source": generated.source,
+        "kg_template_hit": generated.source == "template",
+        "kg_template_name": generated.template_name,
+        "kg_template_similarity": generated.template_similarity,
         "rows": rows,
         "answer": answer,
     }

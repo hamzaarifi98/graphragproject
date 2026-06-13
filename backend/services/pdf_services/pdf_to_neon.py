@@ -1,15 +1,15 @@
 from pathlib import Path
+import sys
 
-from dotenv import load_dotenv
+PROJECT_ROOT = str(Path(__file__).resolve().parents[3])
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from backend.constants.constants import PDF_DATA_DIR
-from backend.services.pdf_services.pdf_loader import extract_pdf_text
-from backend.services.pdf_services.text_embedder import embed_text
+from backend.services.pdf_services.pdf_loader import extract_pdf_text, get_pdf_paths
+from backend.services.pdf_services.text_embedder import embed_documents
 from backend.services.pdf_services.text_splitter import split_text
 from backend.services.pdf_services.vector_store import save_pdf_chunks
-from backend.services.pdf_services.text_embedder import embed_documents
-
-load_dotenv()
 
 
 def ingest_pdf(pdf_path: Path) -> dict[str, int | str]:
@@ -28,14 +28,20 @@ def ingest_pdf(pdf_path: Path) -> dict[str, int | str]:
     return result
 
 
-def main() -> list[dict[str, int | str]]:
-    pdf_dir = Path(PDF_DATA_DIR)
+def ingest_pdf_directory(
+    pdf_dir: str | Path = PDF_DATA_DIR,
+    recursive: bool = False,
+) -> list[dict[str, int | str]]:
     results = []
 
-    for pdf_path in pdf_dir.glob("*.pdf"):
+    for pdf_path in get_pdf_paths(pdf_dir, recursive=recursive):
         results.append(ingest_pdf(pdf_path))
 
     return results
+
+
+def main() -> list[dict[str, int | str]]:
+    return ingest_pdf_directory()
 
 
 if __name__ == "__main__":

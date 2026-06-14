@@ -1,19 +1,13 @@
 import re
 from dataclasses import dataclass
 
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 from neo4j.exceptions import ClientError
 
+from backend.core.llm import get_chat_model
 from backend.services.kg_services.kg_query import run_cypher
 from backend.services.kg_services.kg_query_templates import find_kg_query_template
 
-load_dotenv()
-
-client = ChatOpenAI(
-    model="gpt-5.4-mini",
-    temperature=0,
-)
+client = get_chat_model("gpt-5.4-mini")
 
 
 GRAPH_SCHEMA = """
@@ -58,6 +52,7 @@ BLOCKED_WORDS = (
 BLOCKED_TEMPORAL_PATTERNS = ("EPOCHMILLIS", "TOMILLIS", "MILLISECOND")
 READ_ONLY_CYPHER_PATTERN = re.compile(r"^\s*(MATCH|OPTIONAL MATCH)\b", re.IGNORECASE)
 CODE_FENCE_PATTERN = re.compile(r"```(?:cypher)?|```", re.IGNORECASE)
+LIMIT_PATTERN = re.compile(r"\bLIMIT\s+\d+\b", re.IGNORECASE)
 BLOCKED_WORD_PATTERN = re.compile(
     r"\b(" + "|".join(re.escape(word) for word in BLOCKED_WORDS) + r")\b",
     re.IGNORECASE,
@@ -123,7 +118,7 @@ def generate_cypher_result(
 
     if template_match:
         return GeneratedCypher(
-            cypher=template_match.template.cypher.strip(),
+            cypher=ensure_cypher_limit(template_match.template.cypher.strip()),
             source="template",
             template_name=template_match.template.name,
             template_similarity=round(template_match.similarity, 4),
@@ -160,6 +155,7 @@ Rules:
 - Do not explain.
 - Remember that data is from 2018, so "last month" means last month from 2018 and should be calculated accordingly.
 - Only use MATCH, OPTIONAL MATCH, WHERE, RETURN, ORDER BY, LIMIT, WITH.
+- Always add LIMIT 50 unless the query uses aggregation and returns a small result.
 - Do not write CREATE, MERGE, DELETE, SET, REMOVE, DROP, LOAD, or CALL.
 - Order date and review date properties are stored as strings like "2017-10-10 21:25:13".
 - When comparing or calculating durations with date/time properties, convert them first:
@@ -184,9 +180,16 @@ Rules:
     cypher = response.content.strip()
     cypher = CODE_FENCE_PATTERN.sub("", cypher).strip()
     return GeneratedCypher(
-        cypher=normalize_temporal_cypher(cypher),
+        cypher=ensure_cypher_limit(normalize_temporal_cypher(cypher)),
         source="llm_repair" if previous_cypher and error else "llm",
     )
+
+
+def ensure_cypher_limit(cypher: str) -> str:
+    if LIMIT_PATTERN.search(cypher):
+        return cypher
+
+    return f"{cypher.rstrip(';')}\nLIMIT 50"
 
 
 def normalize_temporal_cypher(cypher: str) -> str:

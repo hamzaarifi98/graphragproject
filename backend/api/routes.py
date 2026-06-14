@@ -2,19 +2,67 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
+from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
-from backend.services.pdf_services import pdf_to_neon
+from backend.pipeline.query_pipeline import query_graph
+from backend.services.cache.query_cache import clear_query_cache
+from backend.services.cache.retriever_cache import (
+    clear_all_retriever_caches,
+    clear_neo4j_retriever_cache,
+)
 from backend.services.csv_services import csv_to_neon
 from backend.services.data_ingestion import main as ingest_all_data
-from backend.services.pdf_services.vector_store import get_olist_rows, get_pdf_chunks, list_olist_tables
-
-from backend.services.cache.querry_cache import clear_query_cache
-from backend.services.cache.retriever_cache import clear_retriever_cache
-
+from backend.services.kg_services.kg_builder import build_knowledge_graph
+from backend.services.kg_services.kg_query import delete_knowledge_graph
+from backend.services.kg_services.llm_query import ask_graph
+from backend.services.pdf_services import pdf_to_neon
+from backend.services.pdf_services.vector_store import (
+    get_olist_rows,
+    get_pdf_chunks,
+    list_olist_tables,
+)
 
 
 app_router = APIRouter()
+
+
+class QueryRequest(BaseModel):
+    question: str
+
+
+ASK_RESPONSE_FIELDS = (
+    "question",
+    "route",
+    "answer",
+    "cache_hit",
+    "cache_type",
+    "cache_similarity",
+    "cached_question",
+    "cypher",
+    "cypher_source",
+    "kg_template_hit",
+    "kg_template_name",
+    "kg_template_similarity",
+    "sql",
+    "sql_source",
+    "sql_template_hit",
+    "sql_template_name",
+    "sql_template_similarity",
+    "retriever_cache_hit",
+    "retriever_cache_type",
+    "retriever_cache_hits",
+)
+
+
+def build_ask_response(result: dict) -> dict:
+    response = {field: result.get(field) for field in ASK_RESPONSE_FIELDS}
+    response["cache_hit"] = result.get("cache_hit", False)
+    response["kg_template_hit"] = result.get("kg_template_hit", False)
+    response["sql_template_hit"] = result.get("sql_template_hit", False)
+    response["retriever_cache_hit"] = result.get("retriever_cache_hit", False)
+    response["retriever_cache_hits"] = result.get("retriever_cache_hits", {})
+    return response
 
 
 @app_router.get("/health")
@@ -26,8 +74,7 @@ async def health_check():
 async def ingest_all():
     results = await run_in_threadpool(ingest_all_data)
     clear_query_cache()
-    clear_retriever_cache("sql_retriever_cache")
-    clear_retriever_cache("neo4j_retriever_cache")
+    clear_all_retriever_caches()
     return {"status": "loaded", "results": results}
 
 
@@ -35,7 +82,7 @@ async def ingest_all():
 async def ingest_structured_data():
     results = await run_in_threadpool(csv_to_neon.ingest_csvs)
     clear_query_cache()
-    clear_retriever_cache("sql_retriever_cache")
+    clear_all_retriever_caches()
     return {"status": "loaded", "tables": results}
 
 
@@ -79,6 +126,7 @@ async def pdf_upload(file: UploadFile = File(...)):
 
     return {"status": "loaded", "pdf": result}
 
+
 @app_router.post("/upload_invoice")
 async def upload_invoice(file: UploadFile = File(...)):
     return await pdf_upload(file)
@@ -94,20 +142,6 @@ async def get_pdf(pdf_name: str):
     return {"source_name": pdf_name, "chunks": chunks}
 
 
-
-from pydantic import BaseModel
-from backend.pipeline.query_pipeline import query_graph
-
-
-class QueryRequest(BaseModel):
-    question: str
-
-
-
-
-# backend/api/routes.py
-# replace ask_question with this version
-
 @app_router.post("/ask")
 async def ask_question(request: QueryRequest):
     result = await run_in_threadpool(
@@ -115,54 +149,29 @@ async def ask_question(request: QueryRequest):
         {"question": request.question},
     )
 
-    return {
-        "question": result.get("question"),
-        "route": result.get("route"),
-        "answer": result.get("answer"),
-        "cache_hit": result.get("cache_hit", False),
-        "cache_type": result.get("cache_type"),
-        "cache_similarity": result.get("cache_similarity"),
-        "cached_question": result.get("cached_question"),
-        "cypher_source": result.get("cypher_source"),
-        "kg_template_hit": result.get("kg_template_hit", False),
-        "kg_template_name": result.get("kg_template_name"),
-        "kg_template_similarity": result.get("kg_template_similarity"),
-        "sql_source": result.get("sql_source"),
-        "sql_template_hit": result.get("sql_template_hit", False),
-        "sql_template_name": result.get("sql_template_name"),
-        "sql_template_similarity": result.get("sql_template_similarity"),
-        "retriever_cache_hit": result.get("retriever_cache_hit", False),
-        "retriever_cache_type": result.get("retriever_cache_type"),
-        "retriever_cache_hits": result.get("retriever_cache_hits", {}),
-    }
+    return build_ask_response(result)
 
 
 @app_router.get("/kg/build")
 async def build_kg():
-    from backend.services.kg_services.kg_builder import build_knowledge_graph
-
     result = await run_in_threadpool(build_knowledge_graph)
     clear_query_cache()
-    clear_retriever_cache("neo4j_retriever_cache")
+    clear_neo4j_retriever_cache()
 
     return {"status": "kg built", "details": result}
 
 
 @app_router.delete("/kg")
 async def delete_kg():
-    from backend.services.kg_services.kg_query import delete_knowledge_graph
-
     result = await run_in_threadpool(delete_knowledge_graph)
     clear_query_cache()
-    clear_retriever_cache("neo4j_retriever_cache")
+    clear_neo4j_retriever_cache()
 
     return {"status": "kg deleted", "details": result}
 
 
 @app_router.get("/kg/ask")
 async def ask_kg_question(question: str):
-    from backend.services.kg_services.llm_query import ask_graph
-
     result = await run_in_threadpool(ask_graph, question)
 
     return result

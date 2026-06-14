@@ -2,27 +2,22 @@ import re
 from dataclasses import dataclass
 from functools import lru_cache
 
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
-from backend.constants.constants import OPENAI_CHAT_MODEL
+from backend.core.llm import get_chat_model
 from backend.core.postgre import engine
 from backend.schemas.router import QueryState
 from backend.services.cache.retriever_cache import (
+    SQL_RETRIEVER_CACHE_PREFIX,
     SQL_CACHE_TTL_SECONDS,
     get_cached_retriever_result,
     set_cached_retriever_result,
 )
 from backend.services.csv_services.sql_query_templates import find_sql_query_template
+from backend.services.langgraph.retriever_state import merge_retriever_cache_hit
 
-load_dotenv()
-
-
-client = ChatOpenAI(
-    model=OPENAI_CHAT_MODEL,
-    temperature=0,
-)
+client = get_chat_model(model='gpt-5.4')
 
 
 ALLOWED_TABLES = (
@@ -55,6 +50,7 @@ AVG_ROUND_PATTERN = re.compile(
     re.IGNORECASE,
 )
 TABLE_REFERENCE_PATTERN = re.compile(r"\bolist\.([a-z_][a-z0-9_]*)\b")
+MAX_SQL_CONTEXT_ROWS = 50
 
 
 @dataclass(frozen=True)
@@ -174,31 +170,90 @@ def run_sql(sql: str) -> list[dict]:
         return [dict(row) for row in rows]
 
 
+def get_missing_olist_tables() -> list[str]:
+    with engine.connect() as connection:
+        rows = connection.execute(
+            text("""
+                SELECT table_name
+                FROM information_schema.tables
+                WHERE table_schema = 'olist'
+            """)
+        ).scalars()
+
+        existing_tables = set(rows)
+
+    return sorted(ALLOWED_TABLE_SET - existing_tables)
+
+
 def ask_postgres_with_sql(question: str) -> dict:
-    cached = get_cached_retriever_result("sql_retriever_cache", question)
+    cached = get_cached_retriever_result(SQL_RETRIEVER_CACHE_PREFIX, question)
 
     if cached:
         return {
-            **cached,
+            **normalize_sql_result(cached),
             "cache_hit": True,
+            "cache_type": "sql",
+        }
+
+    try:
+        missing_tables = get_missing_olist_tables()
+    except SQLAlchemyError as exc:
+        return {
+            "sql": None,
+            "sql_source": None,
+            "sql_template_hit": False,
+            "sql_template_name": None,
+            "sql_template_similarity": None,
+            "rows": [],
+            "error": f"Could not inspect structured tables: {exc}",
+            "cache_hit": False,
+            "cache_type": "sql",
+        }
+
+    if missing_tables:
+        return {
+            "sql": None,
+            "sql_source": None,
+            "sql_template_hit": False,
+            "sql_template_name": None,
+            "sql_template_similarity": None,
+            "rows": [],
+            "error": (
+                "Structured data is not loaded. Run POST /structured/ingest "
+                f"or POST /ingest first. Missing tables: {', '.join(missing_tables)}"
+            ),
+            "cache_hit": False,
             "cache_type": "sql",
         }
 
     generated = generate_sql_result(question)
     sql = generated.sql
-    rows = run_sql(sql)
+    try:
+        rows = run_sql(sql)
+    except SQLAlchemyError as exc:
+        return {
+            "sql": sql,
+            "sql_source": generated.source,
+            "sql_template_hit": generated.source == "template",
+            "sql_template_name": generated.template_name,
+            "sql_template_similarity": generated.template_similarity,
+            "rows": [],
+            "error": f"Postgres query failed: {exc}",
+            "cache_hit": False,
+            "cache_type": "sql",
+        }
 
-    result = {
+    result = normalize_sql_result({
         "sql": sql,
         "sql_source": generated.source,
         "sql_template_hit": generated.source == "template",
         "sql_template_name": generated.template_name,
         "sql_template_similarity": generated.template_similarity,
         "rows": rows,
-    }
+    })
 
     set_cached_retriever_result(
-        "sql_retriever_cache",
+        SQL_RETRIEVER_CACHE_PREFIX,
         question,
         result,
         SQL_CACHE_TTL_SECONDS,
@@ -211,34 +266,36 @@ def ask_postgres_with_sql(question: str) -> dict:
     }
 
 
+def normalize_sql_result(result: dict) -> dict:
+    rows = result.get("rows", [])
+    if isinstance(rows, list):
+        rows = rows[:MAX_SQL_CONTEXT_ROWS]
+
+    return {
+        **result,
+        "rows": rows,
+        "row_count": (
+            len(result.get("rows", []))
+            if isinstance(result.get("rows"), list)
+            else None
+        ),
+        "rows_truncated": (
+            isinstance(result.get("rows"), list)
+            and len(result.get("rows", [])) > MAX_SQL_CONTEXT_ROWS
+        ),
+    }
+
+
 def postgres_retriever(state: QueryState) -> QueryState:
     sql_result = ask_postgres_with_sql(state["question"])
-    retriever_cache_hits = {
-        **state.get("retriever_cache_hits", {}),
-        "sql": sql_result["cache_hit"],
-    }
-    retriever_cache_types = [
-        cache_type
-        for cache_type, cache_hit in retriever_cache_hits.items()
-        if cache_hit
-    ]
 
     return {
         **state,
+        **merge_retriever_cache_hit(state, "sql", sql_result["cache_hit"]),
         "sql_context": str(sql_result),
+        "sql": sql_result.get("sql"),
         "sql_source": sql_result.get("sql_source"),
         "sql_template_hit": sql_result.get("sql_template_hit", False),
         "sql_template_name": sql_result.get("sql_template_name"),
         "sql_template_similarity": sql_result.get("sql_template_similarity"),
-        "retriever_cache_hit": any(retriever_cache_hits.values()),
-        "retriever_cache_type": ", ".join(retriever_cache_types) or None,
-        "retriever_cache_hits": retriever_cache_hits,
     }
-
-
-
-def main():
-    return ask_postgres_with_sql()
-
-if __name__ == "__main__":
-    main()

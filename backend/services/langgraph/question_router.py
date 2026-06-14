@@ -1,16 +1,9 @@
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-
+from backend.core.llm import get_chat_model
 from backend.schemas.router import QueryState
 from backend.services.csv_services.sql_query_templates import find_sql_query_template
 from backend.services.kg_services.kg_query_templates import find_kg_query_template
 
-load_dotenv()
-
-client = ChatOpenAI(
-    model="gpt-4o-mini",
-    temperature=0,
-)
+client = get_chat_model()
 
 SQL_ROUTE_TERMS = {
     "revenue",
@@ -19,17 +12,38 @@ SQL_ROUTE_TERMS = {
     "value",
     "money",
     "average order",
+    "average review",
     "most sold product",
     "best seller revenue",
 }
 KG_ROUTE_TERMS = {
     "delayed deliver",
+    "delayed order",
+    "late deliver",
+    "late order",
     "bad review",
+    "good review",
+    "review score",
     "graph",
     "relationship",
     "connected",
 }
 VALID_ROUTES = {"pdf", "sql", "kg", "hybrid"}
+ROUTER_PROMPT = """
+You route questions for a GraphRAG assistant.
+
+Return only one route name:
+pdf
+sql
+kg
+hybrid
+
+Routing rules:
+- Use kg for graph relationship questions, delayed deliveries, reviews tied to sellers/orders/customers, and connected-entity questions.
+- Use sql for structured aggregate questions about revenue, sales, order value, payments, counts, averages, and table-style metrics.
+- Use pdf for policy/document questions.
+- Use hybrid only when the question clearly needs both documents and structured/graph data.
+"""
 
 
 def normalize_question(question: str) -> str:
@@ -39,11 +53,11 @@ def normalize_question(question: str) -> str:
 def infer_route(question: str) -> str | None:
     normalized = normalize_question(question)
 
-    if any(term in normalized for term in KG_ROUTE_TERMS):
-        return "kg"
-
     if any(term in normalized for term in SQL_ROUTE_TERMS):
         return "sql"
+
+    if any(term in normalized for term in KG_ROUTE_TERMS):
+        return "kg"
 
     return None
 
@@ -85,35 +99,7 @@ def route_question(state: QueryState) -> QueryState:
         [
             {
                 "role": "system",
-                "content": """
-You are a router for a RAG invoice assistant.
-
-If question is : [
-        Who had most delayed deliveries in the last month?
-        Who had most bad reviews in the last month?
-        Who sold the most in the last month?
-] or something similar you rout to kg because it needs graph 
-relationships to answer. 
-
-If question is : [
-what is the total revenue for last month?
-what is the average order value for last month?
-whats the most sold products in last month
-tell me total revenue of best seller
-] then when route to sql.
-
-Questions asking for revenue, sales amount, value, or money should route to sql.
-
-Return only one word:
-
-pdf 
-sql 
-kg
-hybrid 
-
-
-"""
-
+                "content": ROUTER_PROMPT,
             },
             {
                 "role": "user",

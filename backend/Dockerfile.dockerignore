@@ -1,0 +1,8 @@
+**
+!backend
+!backend/**
+!requirements-backend.txt
+backend/**/__pycache__
+backend/**/*.pyc
+backend/evaluation/results
+backend/evaluation/test

@@ -123,6 +123,24 @@ KG_QUERY_TEMPLATES: tuple[KgQueryTemplate, ...] = (
         """,
     ),
     KgQueryTemplate(
+        name="sellers_linked_to_delays_and_good_reviews",
+        question="Which sellers had delayed orders but good reviews?",
+        cypher="""
+            MATCH (s:Seller)<-[:SOLD_BY]-(o:Order)-[:HAS_REVIEW]->(r:Review)
+            WHERE o.delivered_customer_date IS NOT NULL
+              AND o.estimated_delivery_date IS NOT NULL
+              AND datetime(replace(o.delivered_customer_date, ' ', 'T'))
+                  > datetime(replace(o.estimated_delivery_date, ' ', 'T'))
+              AND r.score >= 4
+            RETURN
+                s.id AS seller_id,
+                count(DISTINCT o) AS delayed_orders,
+                avg(r.score) AS average_review_score
+            ORDER BY delayed_orders DESC, average_review_score DESC
+            LIMIT 20
+        """,
+    ),
+    KgQueryTemplate(
         name="top_product_categories_by_orders",
         question="What are the top product categories by number of orders?",
         cypher="""

@@ -14,6 +14,9 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 SQL_CACHE_TTL_SECONDS = int(os.getenv("SQL_CACHE_TTL_SECONDS", "1800"))
 NEO4J_CACHE_TTL_SECONDS = int(os.getenv("NEO4J_CACHE_TTL_SECONDS", "1800"))
+SQL_RETRIEVER_CACHE_PREFIX = "sql_retriever_cache"
+NEO4J_RETRIEVER_CACHE_PREFIX = "neo4j_retriever_cache:v2"
+LEGACY_NEO4J_RETRIEVER_CACHE_PREFIX = "neo4j_retriever_cache"
 
 redis_client = redis.Redis.from_url(
     REDIS_URL,
@@ -69,3 +72,17 @@ def set_cached_retriever_result(
 def clear_retriever_cache(prefix: str) -> None:
     for keys in batched(redis_client.scan_iter(f"{prefix}:*")):
         redis_client.delete(*keys)
+
+
+def clear_sql_retriever_cache() -> None:
+    clear_retriever_cache(SQL_RETRIEVER_CACHE_PREFIX)
+
+
+def clear_neo4j_retriever_cache() -> None:
+    clear_retriever_cache(NEO4J_RETRIEVER_CACHE_PREFIX)
+    clear_retriever_cache(LEGACY_NEO4J_RETRIEVER_CACHE_PREFIX)
+
+
+def clear_all_retriever_caches() -> None:
+    clear_sql_retriever_cache()
+    clear_neo4j_retriever_cache()

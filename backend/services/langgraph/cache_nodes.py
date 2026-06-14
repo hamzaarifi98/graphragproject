@@ -1,7 +1,21 @@
-# backend/services/langgraph/cache_nodes.py
-
 from backend.schemas.router import QueryState
-from backend.services.cache.querry_cache import get_cached_answer, set_cached_answer
+from backend.services.cache.query_cache import get_cached_answer, set_cached_answer
+
+CACHED_RESULT_FIELDS = (
+    "question",
+    "route",
+    "answer",
+    "cypher",
+    "cypher_source",
+    "kg_template_hit",
+    "kg_template_name",
+    "kg_template_similarity",
+    "sql",
+    "sql_source",
+    "sql_template_hit",
+    "sql_template_name",
+    "sql_template_similarity",
+)
 
 
 def cache_lookup_node(state: QueryState) -> QueryState:
@@ -29,9 +43,9 @@ def choose_after_cache(state: QueryState) -> str:
 
 def cache_save_node(state: QueryState) -> QueryState:
     result = {
-        "question": state.get("question"),
-        "route": state.get("route"),
-        "answer": state.get("answer"),
+        field: state.get(field)
+        for field in CACHED_RESULT_FIELDS
+        if state.get(field) is not None
     }
 
     set_cached_answer(state["question"], result)

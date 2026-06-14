@@ -1,0 +1,4 @@
+deepeval
+ragas
+pytest
+pytest-asyncio

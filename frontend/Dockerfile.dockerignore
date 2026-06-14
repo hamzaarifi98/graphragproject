@@ -1,0 +1,7 @@
+**
+!frontend
+!frontend/**
+!requirements-frontend.txt
+frontend/**/__pycache__
+frontend/**/*.pyc
+.env

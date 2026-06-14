@@ -2,13 +2,9 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 from starlette.concurrency import run_in_threadpool
 
-from backend.evaluation.full_evaluation import (
-    DATASET_PATH as FULL_DATASET_PATH,
-    run_full_evaluation,
-)
 from backend.evaluation.router_evaluation import (
     DATASET_PATH,
     evaluate_router_item,
@@ -16,6 +12,7 @@ from backend.evaluation.router_evaluation import (
     summarize_results,
 )
 
+FULL_DATASET_PATH = Path(__file__).resolve().parents[1] / "evaluation" / "goal.json"
 
 evaluation_router = APIRouter(prefix="/evaluation", tags=["evaluation"])
 
@@ -68,6 +65,17 @@ async def run_full_e2e_evaluation(
     run_deepeval: bool = Query(default=False),
     print_results: bool = Query(default=True),
 ):
+    try:
+        from backend.evaluation.full_evaluation import run_full_evaluation
+    except ImportError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Full evaluation dependencies are not installed. "
+                "Install requirements-eval.txt to enable this endpoint."
+            ),
+        ) from exc
+
     return await run_in_threadpool(
         run_full_evaluation,
         FULL_DATASET_PATH,

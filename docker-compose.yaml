@@ -1,0 +1,69 @@
+name: graphrag
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: graphrag-redis
+    ports:
+      - "${REDIS_PORT}:6379"
+
+  database:
+    image: pgvector/pgvector:pg16
+    container_name: graphrag-database
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: graphrag-neo4j
+    ports:
+      - "${NEO4J_HTTP_PORT}:7474"
+      - "${NEO4J_BOLT_PORT}:7687"
+    environment:
+      NEO4J_AUTH: ${NEO4J_USERNAME}/${NEO4J_PASSWORD}
+    volumes:
+      - neo4j_data:/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: graphrag-backend
+    ports:
+      - "${BACKEND_PORT}:8000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}
+      NEO4J_URI: bolt://${NEO4J_HOST}:7687
+      NEO4J_USERNAME: ${NEO4J_USERNAME}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+      REDIS_URL: redis://${REDIS_HOST}:6379/${REDIS_DB}
+    volumes:
+      - ./data:/app/data:ro
+    depends_on:
+      - database
+      - neo4j
+      - redis
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: graphrag-frontend
+    ports:
+      - "${FRONTEND_PORT}:8501"
+    environment:
+      GRAPHRAG_API_URL: ${GRAPHRAG_API_URL}
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  neo4j_data:

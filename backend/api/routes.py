@@ -1,10 +1,11 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
-
+from fastapi import Depends
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
+from backend.api.deps import get_current_user
 from backend.pipeline.query_pipeline import query_graph
 from backend.services.cache.query_cache import clear_query_cache
 from backend.services.cache.retriever_cache import (
@@ -143,7 +144,13 @@ async def get_pdf(pdf_name: str):
 
 
 @app_router.post("/ask")
-async def ask_question(request: QueryRequest):
+async def ask_question(request: QueryRequest,
+                       current_user: dict = Depends(get_current_user)):
+    
+    tenant_id = current_user["tenant_id"]
+    user_id = current_user["id"]
+
+   
     result = await run_in_threadpool(
         query_graph.invoke,
         {"question": request.question},

@@ -6,3 +6,6 @@ backend/**/__pycache__
 backend/**/*.pyc
 backend/evaluation/results
 backend/evaluation/test
+.env
+!data
+!data/**

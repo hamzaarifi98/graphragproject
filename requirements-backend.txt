@@ -16,3 +16,8 @@ langchain-openai
 langchain-text-splitters
 langgraph
 openai
+pwdlib
+passlib[bcrypt]
+pydantic[email]
+PyJWT
+pwdlib[argon2]

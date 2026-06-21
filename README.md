@@ -5,9 +5,9 @@ The project combines document RAG, SQL retrieval, Neo4j knowledge graph retrieva
 
 For optimization I used SQL and CYPHER templates, where i embedded most popular questions so when a user asks similar question to those embedded, template data get fetched, in this way we prevent using SQL or CYPHER generation and we have some of the costs reduced. Besides that there is REDIS caching where questions get cached and be used for neartime querries, this also reduces latency and cost.
 
-For evaluation I used DeepEval because of Pytest, tracing and monitoring is done by LangSmith, CloudWatch, and manually crafted logs to get more insights if things go south. Also there I assigned metadata to answers.
+For evaluation I used DeepEval because of Pytest, tracing and monitoring is done by LangSmith, AWS CloudWatch, and manually crafted logs to get more insights if things go south.Metadata are assigned to answers.
 
-
+Neo4j database is deployed in AWS EC2 and the project is deployed in AWS ECS using FARGATE serverless service, pay-as-you-go compute engine for containers.
 
 Screenshots at Screenshot folder.
 

@@ -1,44 +1,31 @@
 # GraphRAG Project
 
-A production-style GraphRAG assistant built on the Olist e-commerce dataset.
-The project combines document RAG, SQL retrieval, Neo4j knowledge graph retrieval, Redis caching, and evaluation into one FastAPI + Streamlit application.
+Built GraphRAG assistant on the Olist e-commerce dataset and deployed in AWS ECS.
+The project combines document RAG, SQL retrieval, Neo4j knowledge graph retrieval, Redis caching, and evaluation into one FastAPI + Streamlit application and it has authentication to be able to use different users and have access to their data, preventing access to others data. 
 
-You can see sreenshots at Screenshots folder.
+For optimization I used SQL and CYPHER templates, where i embedded most popular questions so when a user asks similar question to those embedded, template data get fetched, in this way we prevent using SQL or CYPHER generation and we have some of the costs reduced. Besides that there is REDIS caching where questions get cached and be used for neartime querries, this also reduces latency and cost.
 
-## Overview
+For evaluation I used DeepEval because of Pytest, tracing and monitoring is done by LangSmith, CloudWatch, and manually crafted logs to get more insights if things go south. Also there I assigned metadata to answers.
 
-This system answers questions over both unstructured documents and structured e-commerce data. It can route user questions to the correct retrieval path:
 
-* **PDF RAG** for policy/document questions
-* **PostgreSQL SQL retrieval** for structured analytics and aggregations
-* **Neo4j graph retrieval** for relationship-based questions
-* **Hybrid retrieval** when a question needs multiple sources
 
-The goal is to demonstrate a job-ready GraphRAG architecture with ingestion, retrieval, caching, UI, and evaluation.
-
-## Features
-
-* FastAPI backend with ingestion, retrieval, graph, and evaluation endpoints
-* Streamlit frontend for asking questions, uploading PDFs, viewing tables, building the graph, and running evaluations
-* PostgreSQL with pgvector for document chunks and embeddings
-* Olist structured data ingestion into PostgreSQL
-* Neo4j knowledge graph built from customers, orders, products, sellers, payments, reviews, and categories
-* LangGraph pipeline for routing and orchestration
-* Redis exact, semantic, SQL, and Neo4j retriever caching
-* Template-first SQL/Cypher generation with LLM fallback
-* Manual reranking using vector similarity and lexical overlap
-* DeepEval, RAGAS-ready dependencies, and LangSmith tracing support
+Screenshots at Screenshot folder.
 
 ## Architecture
 
 ```text
+    |
+Register or Login
+    |
 User Question
     |
     v
 Redis Cache Lookup
     |
+SQL or CYPHER template check
     v
 LangGraph Router
+    |
     |
     |-- PDF Retriever -> pgvector chunks
     |-- SQL Retriever -> PostgreSQL / Olist tables
@@ -58,8 +45,8 @@ Cache Save + Response
 * **Frontend:** Streamlit
 * **Databases:** PostgreSQL, pgvector, Neo4j
 * **Caching:** Redis
-* **Evaluation:** DeepEval, RAGAS, LangSmith tracing
-* **Deployment:** Docker Compose
+* **Evaluation:** DeepEval, LangSmith tracing
+* **Deployment:** Docker, AWS EC2, AWS ECS
 
 ## Data
 
@@ -75,37 +62,8 @@ The project uses the Olist e-commerce dataset, including:
 * Geolocation
 * Product category translations
 
-PDF files can also be ingested and embedded for document-based question answering.
+As policies there are PDF data where there are written different policies. It supports uppload to use specific data.
 
-## Running with Docker
-
-Create a `.env` file with the required database, Redis, Neo4j, API, and model settings.
-
-Then start the full stack:
-
-```bash
-docker compose up --build
-```
-
-Services started by Docker Compose:
-
-* PostgreSQL/pgvector
-* Neo4j
-* Redis
-* FastAPI backend
-* Streamlit frontend
-
-Backend:
-
-```text
-http://localhost:8000
-```
-
-Frontend:
-
-```text
-http://localhost:8501
-```
 
 ## Main API Endpoints
 
@@ -123,6 +81,8 @@ DELETE /kg
 GET  /kg/ask
 POST /evaluation/run
 POST /evaluation/full/run
+POST /auth/register
+POST /auth/login
 ```
 
 ## Example Questions
@@ -141,7 +101,7 @@ Which payment types are most common?
 
 ## Evaluation
 
-The project includes router-level and full end-to-end evaluation.
+The project includes full end-to-end evaluation.
 
 Evaluation checks include:
 
@@ -157,11 +117,9 @@ Evaluation checks include:
 * Faithfulness
 * Contextual relevancy
 
-Run evaluation from the Streamlit UI or through the API:
-
-```http
-POST /evaluation/run
-POST /evaluation/full/run
-```
+Hallucination and other metrics about LLMs are tracked by LangSmith.
 
 
+## Improvements
+
+There are future improvements for model and stack selection using Paretto optimisation, Constrains, Weighted score and ablation analysis for specific improvements.

@@ -8,12 +8,14 @@ from typing import Any
 import redis
 from dotenv import load_dotenv
 
+from backend.config import settings
+
 load_dotenv()
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
-SQL_CACHE_TTL_SECONDS = int(os.getenv("SQL_CACHE_TTL_SECONDS", "1800"))
-NEO4J_CACHE_TTL_SECONDS = int(os.getenv("NEO4J_CACHE_TTL_SECONDS", "1800"))
+SQL_CACHE_TTL_SECONDS = settings.SQL_CACHE_TTL_SECONDS
+NEO4J_CACHE_TTL_SECONDS = settings.NEO4J_CACHE_TTL_SECONDS
 SQL_RETRIEVER_CACHE_PREFIX = "sql_retriever_cache"
 NEO4J_RETRIEVER_CACHE_PREFIX = "neo4j_retriever_cache:v2"
 LEGACY_NEO4J_RETRIEVER_CACHE_PREFIX = "neo4j_retriever_cache"

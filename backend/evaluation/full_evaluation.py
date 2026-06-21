@@ -40,6 +40,7 @@ except (ImportError, ModuleNotFoundError):
 
 sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 
+from backend.config import settings
 from backend.evaluation.router_evaluation import RESULTS_DIR, load_dataset
 from backend.pipeline.query_pipeline import query_graph
 
@@ -51,7 +52,7 @@ DATASET_PATH = Path(
     )
 )
 RESULT_PREFIX = "full_deepeval"
-DEEPEVAL_MODEL = os.getenv("DEEPEVAL_MODEL", "gpt-5.4-mini")
+DEEPEVAL_MODEL = settings.DEEPEVAL_MODEL
 NOT_ENOUGH_INFORMATION_PHRASES = (
     "do not have enough information",
     "don't have enough information",
@@ -482,3 +483,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

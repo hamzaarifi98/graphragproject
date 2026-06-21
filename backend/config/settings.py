@@ -1,3 +1,29 @@
+import os
+
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+# Authentication
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 JWT_ALGORITHM = "HS256"
-JWT_SECRET_KEY = "passworder123"
+JWT_SECRET_KEY = os.environ["JWT_SECRET_KEY"]
+
+# OpenAI models and embeddings
+OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
+OPENAI_CHAT_MODEL = "gpt-5.4-nano"
+EMBEDDING_DIMENSION = 1536
+EMBEDDING_DEVICE = "cpu"
+
+# Query and retriever caches
+QUERY_CACHE_VERSION = "v1"
+QUERY_CACHE_TTL_SECONDS = 600
+QUERY_CACHE_SIMILARITY_THRESHOLD = 0.95
+QUERY_CACHE_KEYWORD_BOOST = 0.08
+SQL_CACHE_TTL_SECONDS = 1800
+NEO4J_CACHE_TTL_SECONDS = 1800
+
+# Evaluation
+DEEPEVAL_PROVIDER = "openai"
+DEEPEVAL_MODEL = "gpt-5.4-mini"

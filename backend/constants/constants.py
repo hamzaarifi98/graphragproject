@@ -1,9 +1,6 @@
-import os
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-load_dotenv()
+from backend.config import settings
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 
@@ -28,6 +25,6 @@ RERANK_CANDIDATE_MULTIPLIER = 4
 RERANK_LEXICAL_WEIGHT = 0.6
 RERANK_VECTOR_WEIGHT = 0.4
 
-OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
-OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "gpt-5.4-nano")
-EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "1536"))
+OPENAI_EMBEDDING_MODEL = settings.OPENAI_EMBEDDING_MODEL
+OPENAI_CHAT_MODEL = settings.OPENAI_CHAT_MODEL
+EMBEDDING_DIMENSION = settings.EMBEDDING_DIMENSION

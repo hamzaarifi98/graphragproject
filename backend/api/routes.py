@@ -144,11 +144,11 @@ async def get_pdf(pdf_name: str):
 
 
 @app_router.post("/ask")
-async def ask_question(request: QueryRequest,
-                       current_user: dict = Depends(get_current_user)):
+async def ask_question(request: QueryRequest):
+                       #current_user: dict = Depends(get_current_user)):
     
-    tenant_id = current_user["tenant_id"]
-    user_id = current_user["id"]
+    #tenant_id = current_user["tenant_id"]
+    #user_id = current_user["id"]
 
    
     result = await run_in_threadpool(

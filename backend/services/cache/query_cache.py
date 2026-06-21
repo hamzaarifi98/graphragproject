@@ -11,17 +11,16 @@ from typing import Any
 import redis
 from dotenv import load_dotenv
 
+from backend.config import settings
 from backend.services.pdf_services.text_embedder import embed_text
 
 load_dotenv()
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-QUERY_CACHE_VERSION = os.getenv("QUERY_CACHE_VERSION", "v1")
-QUERY_CACHE_TTL_SECONDS = int(os.getenv("QUERY_CACHE_TTL_SECONDS", "600"))
-QUERY_CACHE_SIMILARITY_THRESHOLD = float(
-    os.getenv("QUERY_CACHE_SIMILARITY_THRESHOLD", "0.85")
-)
-QUERY_CACHE_KEYWORD_BOOST = float(os.getenv("QUERY_CACHE_KEYWORD_BOOST", "0.08"))
+QUERY_CACHE_VERSION = settings.QUERY_CACHE_VERSION
+QUERY_CACHE_TTL_SECONDS = settings.QUERY_CACHE_TTL_SECONDS
+QUERY_CACHE_SIMILARITY_THRESHOLD = settings.QUERY_CACHE_SIMILARITY_THRESHOLD
+QUERY_CACHE_KEYWORD_BOOST = settings.QUERY_CACHE_KEYWORD_BOOST
 QUERY_CACHE_MAX_SCORE = 1.0
 
 EXACT_PREFIX = f"query_cache:{QUERY_CACHE_VERSION}:exact"
